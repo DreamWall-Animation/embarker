@@ -1,0 +1,7 @@
+version: [0, 0, 0]  # Version, Feature, Hotfix.
+release-date: 'not yet'
+build: python-interpreter
+build_datetime: null
+build_user: null
+dreamwall_website: 'https://fr.dreamwall.be/'
+dreamwall_github_url: 'https://github.com/DreamWall-Animation'
