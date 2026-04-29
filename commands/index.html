@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://dreamwall-animation.github.io/embarker/commands/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Functions - DreamWall Embarker</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Functions";
+        var mkdocs_page_input_path = "commands.md";
+        var mkdocs_page_url = "/embarker/commands/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="..">
+          <img src="../images/dreamwall.png" class="logo" alt="Logo"/>
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../commandline/">Command-line</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../environment/">Environment</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../playlist/">Playlist file</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Dev</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../build/">Embarker Build Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../pythonplugin/">Write an Embarker Plugin</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >API</a>
+    <ul class="current">
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">Functions</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#functions-index">Functions Index</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#functions-descriptions">Functions Descriptions</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#create_new_annotation_model">create_new_annotation_model</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#delete_annotation">delete_annotation</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#export_annotated_frames">export_annotated_frames</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#export_current_frame">export_current_frame</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#export_current_video_session">export_current_video_session</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#export_preferences">export_preferences</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#export_session">export_session</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#get_action">get_action</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#get_frame">get_frame</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#get_main_window">get_main_window</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#get_session">get_session</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#import_preferences">import_preferences</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#import_session_annotations">import_session_annotations</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#import_session_annotations_prompt">import_session_annotations_prompt</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#is_playing">is_playing</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#load_playlist">load_playlist</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#load_videos">load_videos</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#new_session">new_session</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#next_frame">next_frame</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#open_session">open_session</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#open_session_data">open_session_data</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#play_pause">play_pause</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#previous_frame">previous_frame</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#prompt_load_videos">prompt_load_videos</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#remove_current_video">remove_current_video</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#render_frame">render_frame</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#replace_videos">replace_videos</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#reset_canvas">reset_canvas</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#save">save</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#save_as">save_as</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#set_canvas_comment">set_canvas_comment</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#set_frame">set_frame</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#set_next_annotation">set_next_annotation</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#set_next_video">set_next_video</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#set_playback_end">set_playback_end</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#set_playback_range">set_playback_range</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#set_playback_start">set_playback_start</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#set_previous_annotation">set_previous_annotation</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#set_previous_video">set_previous_video</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#set_recent_session_file">set_recent_session_file</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#set_volume">set_volume</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#toggle_loop_mode">toggle_loop_mode</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#toggle_mute_annotations">toggle_mute_annotations</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#toggle_mute_sound">toggle_mute_sound</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#toggle_onionskin">toggle_onionskin</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Classes</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../container/">VideoContainer</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../session/">Session</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../canvasmodel/">CanvasModel</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../callback/">Available callback events</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../download/">Download</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">DreamWall Embarker</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Dev</li>
+          <li class="breadcrumb-item">API</li>
+      <li class="breadcrumb-item active">Functions</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/DreamWall-Animation/embarker/edit/master/docs/commands.md">Edit on DreamWall Embarker</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="commands">Commands</h1>
+<p>Embarker API commands. This module defines all the functions exposed to
+control the application externally.</p>
+<p>All these functions are available in the <code>embarker.commands</code> module.
+Exemple:</p>
+<pre><code class="language-python">import embarker.commands as ebc
+
+ebc.set_frame(15)
+image = ebc.render_frame(15)
+image.save('c:/image.png')
+</code></pre>
+<h2 id="functions-index">Functions Index</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Return</th>
+<th style="text-align: left;">Function</th>
+<th style="text-align: left;">Arguments</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>CanvasModel</code></td>
+<td style="text-align: left;"><a href="#create_new_annotation_model"><code>create_new_annotation_model</code></a></td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#delete_annotation"><code>delete_annotation</code></a></td>
+<td style="text-align: left;"><code>frame=None</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#export_annotated_frames"><code>export_annotated_frames</code></a></td>
+<td style="text-align: left;"><code>directory=None</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#export_current_frame"><code>export_current_frame</code></a></td>
+<td style="text-align: left;"><code>filepath=None</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#export_current_video_session"><code>export_current_video_session</code></a></td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#export_preferences"><code>export_preferences</code></a></td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>bytes/dict</code></td>
+<td style="text-align: left;"><a href="#export_session"><code>export_session</code></a></td>
+<td style="text-align: left;"><code>container_ids, filepath=None, packed=True</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>QAction</code></td>
+<td style="text-align: left;"><a href="#get_action"><code>get_action</code></a></td>
+<td style="text-align: left;"><code>action_id</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>int</code></td>
+<td style="text-align: left;"><a href="#get_frame"><code>get_frame</code></a></td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>QtWidgets.QMainWindow</code></td>
+<td style="text-align: left;"><a href="#get_main_window"><code>get_main_window</code></a></td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Session</code></td>
+<td style="text-align: left;"><a href="#get_session"><code>get_session</code></a></td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#import_preferences"><code>import_preferences</code></a></td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#import_session_annotations"><code>import_session_annotations</code></a></td>
+<td style="text-align: left;"><code>filepath=None, container_id=None</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#import_session_annotations_prompt"><code>import_session_annotations_prompt</code></a></td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>bool</code></td>
+<td style="text-align: left;"><a href="#is_playing"><code>is_playing</code></a></td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#load_playlist"><code>load_playlist</code></a></td>
+<td style="text-align: left;"><code>filepath=None</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#load_videos"><code>load_videos</code></a></td>
+<td style="text-align: left;"><code>video_paths, container_ids=None, metadatas=None, index=-1</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#new_session"><code>new_session</code></a></td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#next_frame"><code>next_frame</code></a></td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#open_session"><code>open_session</code></a></td>
+<td style="text-align: left;"><code>filepath=None, as_new_file=False</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#open_session_data"><code>open_session_data</code></a></td>
+<td style="text-align: left;"><code>data</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#play_pause"><code>play_pause</code></a></td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#previous_frame"><code>previous_frame</code></a></td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#prompt_load_videos"><code>prompt_load_videos</code></a></td>
+<td style="text-align: left;"><code>insert=False, after=False</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#remove_current_video"><code>remove_current_video</code></a></td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>QtGui.QImage</code></td>
+<td style="text-align: left;"><a href="#render_frame"><code>render_frame</code></a></td>
+<td style="text-align: left;"><code>frame</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#replace_videos"><code>replace_videos</code></a></td>
+<td style="text-align: left;"><code>video_path, container_id, metadata=None</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#reset_canvas"><code>reset_canvas</code></a></td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#save"><code>save</code></a></td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#save_as"><code>save_as</code></a></td>
+<td style="text-align: left;"><code>data=None</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#set_canvas_comment"><code>set_canvas_comment</code></a></td>
+<td style="text-align: left;"><code>comment</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#set_frame"><code>set_frame</code></a></td>
+<td style="text-align: left;"><code>frame</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#set_next_annotation"><code>set_next_annotation</code></a></td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#set_next_video"><code>set_next_video</code></a></td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#set_playback_end"><code>set_playback_end</code></a></td>
+<td style="text-align: left;"><code>frame=None</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#set_playback_range"><code>set_playback_range</code></a></td>
+<td style="text-align: left;"><code>start, end</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#set_playback_start"><code>set_playback_start</code></a></td>
+<td style="text-align: left;"><code>frame=None</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#set_previous_annotation"><code>set_previous_annotation</code></a></td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#set_previous_video"><code>set_previous_video</code></a></td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#set_recent_session_file"><code>set_recent_session_file</code></a></td>
+<td style="text-align: left;"><code>filepath</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#set_volume"><code>set_volume</code></a></td>
+<td style="text-align: left;"><code>value</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#toggle_loop_mode"><code>toggle_loop_mode</code></a></td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#toggle_mute_annotations"><code>toggle_mute_annotations</code></a></td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#toggle_mute_sound"><code>toggle_mute_sound</code></a></td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#toggle_onionskin"><code>toggle_onionskin</code></a></td>
+<td style="text-align: left;"><code>*_</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="functions-descriptions">Functions Descriptions</h2>
+<h3 id="create_new_annotation_model"><code>create_new_annotation_model</code></h3>
+<p>Factory method for creating a new <code>CanvasModel</code> using the current viewport mapper.</p>
+<h3 id="delete_annotation"><code>delete_annotation</code></h3>
+<p>Deletes the annotation at the specified frame or current frame if not provided.</p>
+<h3 id="export_annotated_frames"><code>export_annotated_frames</code></h3>
+<p>Exports all annotated frames as PNG images into the specified directory.</p>
+<h3 id="export_current_frame"><code>export_current_frame</code></h3>
+<p>Exports the current frame (with annotations) as a PNG image.</p>
+<h3 id="export_current_video_session"><code>export_current_video_session</code></h3>
+<p>Exports the current video container and its annotations into a new session file.</p>
+<h3 id="export_preferences"><code>export_preferences</code></h3>
+<p>Exports UI state and tool settings into a YAML file.</p>
+<h3 id="export_session"><code>export_session</code></h3>
+<p>Exports selected containers and their annotations. Can return packed (msgpack) or raw data.</p>
+<h3 id="get_action"><code>get_action</code></h3>
+<p>Returns a <code>QAction</code> from the main window action registry.</p>
+<h3 id="get_frame"><code>get_frame</code></h3>
+<p>Returns the current frame</p>
+<h3 id="get_main_window"><code>get_main_window</code></h3>
+<p>Returns the main application window instance.</p>
+<h3 id="get_session"><code>get_session</code></h3>
+<p>Returns the current active <code>Session</code> object.</p>
+<h3 id="import_preferences"><code>import_preferences</code></h3>
+<p>Imports UI and tool configuration from a YAML file.</p>
+<h3 id="import_session_annotations"><code>import_session_annotations</code></h3>
+<p>Imports annotations from another session file into a specific container.</p>
+<h3 id="import_session_annotations_prompt"><code>import_session_annotations_prompt</code></h3>
+<p>Opens a dialog to import annotations from another session.</p>
+<h3 id="is_playing"><code>is_playing</code></h3>
+<p>Returns whether the media player is currently playing.</p>
+<h3 id="load_playlist"><code>load_playlist</code></h3>
+<p>Loads a playlist from a <code>.playlist</code> YAML file.</p>
+<h3 id="load_videos"><code>load_videos</code></h3>
+<p>Adds videos to the current session.</p>
+<p>Supports:
+- Optional container IDs
+- Metadata injection (e.g. pipeline IDs)
+- Custom insertion index</p>
+<h3 id="new_session"><code>new_session</code></h3>
+<p>Resets the application state and starts a new clean session.</p>
+<h3 id="next_frame"><code>next_frame</code></h3>
+<p>Moves playback to the next frame, respecting playback range.</p>
+<h3 id="open_session"><code>open_session</code></h3>
+<p>Opens a <code>.embk</code> session file. If no filepath is provided, opens a file dialog.</p>
+<h3 id="open_session_data"><code>open_session_data</code></h3>
+<p>Loads a session from raw data.</p>
+<h3 id="play_pause"><code>play_pause</code></h3>
+<p>Toggles playback and updates onion skin cache for current annotation.</p>
+<h3 id="previous_frame"><code>previous_frame</code></h3>
+<p>Moves playback to the previous frame, respecting playback range.</p>
+<h3 id="prompt_load_videos"><code>prompt_load_videos</code></h3>
+<p>Opens a file dialog to load video files into the session.</p>
+<h3 id="remove_current_video"><code>remove_current_video</code></h3>
+<p>Removes the currently selected video from the playlist.</p>
+<h3 id="render_frame"><code>render_frame</code></h3>
+<p>Renders a specific frame with annotations and returns it as a <code>QImage</code>.</p>
+<h3 id="replace_videos"><code>replace_videos</code></h3>
+<p>Replaces a video in the playlist while keeping the same container ID.</p>
+<h3 id="reset_canvas"><code>reset_canvas</code></h3>
+<p>Resets canvas zoom to default and centers the view.</p>
+<h3 id="save"><code>save</code></h3>
+<p>Saves the current session to its associated file.</p>
+<h3 id="save_as"><code>save_as</code></h3>
+<p>Prompts user to save the session to a new file.</p>
+<h3 id="set_canvas_comment"><code>set_canvas_comment</code></h3>
+<p>Sets a comment string on the current canvas model.</p>
+<h3 id="set_frame"><code>set_frame</code></h3>
+<p>Sets the current playback frame and updates onion skin rendering.</p>
+<h3 id="set_next_annotation"><code>set_next_annotation</code></h3>
+<p>Jumps to the next annotated frame.</p>
+<h3 id="set_next_video"><code>set_next_video</code></h3>
+<p>Jumps to the first frame of the next video.</p>
+<h3 id="set_playback_end"><code>set_playback_end</code></h3>
+<p>Sets the playback end frame.</p>
+<h3 id="set_playback_range"><code>set_playback_range</code></h3>
+<p>Defines the playback start and end frames.</p>
+<h3 id="set_playback_start"><code>set_playback_start</code></h3>
+<p>Sets the playback start frame.</p>
+<h3 id="set_previous_annotation"><code>set_previous_annotation</code></h3>
+<p>Jumps to the previous annotated frame.</p>
+<h3 id="set_previous_video"><code>set_previous_video</code></h3>
+<p>Jumps to the previous video start frame.</p>
+<h3 id="set_recent_session_file"><code>set_recent_session_file</code></h3>
+<p>Adds a session file path to the recent files list.</p>
+<h3 id="set_volume"><code>set_volume</code></h3>
+<p>Sets playback volume (0–100).</p>
+<h3 id="toggle_loop_mode"><code>toggle_loop_mode</code></h3>
+<p>Toggles loop playback mode.</p>
+<h3 id="toggle_mute_annotations"><code>toggle_mute_annotations</code></h3>
+<p>Toggles visibility of annotations during playback.</p>
+<h3 id="toggle_mute_sound"><code>toggle_mute_sound</code></h3>
+<p>Toggles audio mute state.</p>
+<h3 id="toggle_onionskin"><code>toggle_onionskin</code></h3>
+<p>Enables or disables onion skin rendering.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../pythonplugin/" class="btn btn-neutral float-left" title="Write an Embarker Plugin"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../container/" class="btn btn-neutral float-right" title="VideoContainer">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/DreamWall-Animation/embarker" class="fa fa-code-fork" style="color: #fcfcfc"> DreamWall Embarker</a>
+        </span>
+    
+    
+      <span><a href="../pythonplugin/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../container/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

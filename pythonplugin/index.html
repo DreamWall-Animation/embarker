@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://dreamwall-animation.github.io/embarker/pythonplugin/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Write an Embarker Plugin - DreamWall Embarker</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Write an Embarker Plugin";
+        var mkdocs_page_input_path = "pythonplugin.md";
+        var mkdocs_page_url = "/embarker/pythonplugin/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="..">
+          <img src="../images/dreamwall.png" class="logo" alt="Logo"/>
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../commandline/">Command-line</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../environment/">Environment</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../playlist/">Playlist file</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Dev</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../build/">Embarker Build Guide</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Write an Embarker Plugin</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#what-is-an-embarker-plugin">What is an Embarker Plugin?</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#basic-plugin-structure">Basic Plugin Structure</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#required-elements">Required elements:</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#classes">Classes</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#embarkertoolbar">EmbarkerToolBar</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#embarkermenu">EmbarkerMenu</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#embarkerdockwidget">EmbarkerDockWidget</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#common-methods">Common methods</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#def-get_actionsself">def get_actions(self):</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#def-update_viewself">def update_view(self)</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#minimal-example">Minimal Example</a>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >API</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../commands/">Functions</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Classes</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../container/">VideoContainer</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../session/">Session</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../canvasmodel/">CanvasModel</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../callback/">Available callback events</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../download/">Download</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">DreamWall Embarker</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Dev</li>
+      <li class="breadcrumb-item active">Write an Embarker Plugin</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/DreamWall-Animation/embarker/edit/master/docs/pythonplugin.md">Edit on DreamWall Embarker</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="write-an-embarker-plugin">Write an Embarker Plugin</h1>
+<p>This guide explains how to create a plugin for Embarker.</p>
+<hr />
+<h2 id="what-is-an-embarker-plugin">What is an Embarker Plugin?</h2>
+<p>An Embarker plugin extends the application by adding:</p>
+<ul>
+<li>UI elements (Toolbars, Menus, Dock Widgets)</li>
+<li>Event callbacks</li>
+<li>Integration with the application state</li>
+</ul>
+<h2 id="basic-plugin-structure">Basic Plugin Structure</h2>
+<p>A plugin is a Python file containing:</p>
+<pre><code class="language-python">&quot;&quot;&quot;Plugin description&quot;&quot;&quot;
+</code></pre>
+<h3 id="required-elements">Required elements:</h3>
+<pre><code class="language-python">PLUGIN_NAME = 'MyPlugin'
+__version__ = '1.0'
+__author__ = 'Your Name'
+</code></pre>
+<h2 id="classes">Classes</h2>
+<p>To customize the interface and create dock widgets, menus, and toolbars, you need to subclass a class provided in the API:</p>
+<pre><code class="language-python">from embarker.api import EmbarkerToolBar, EmbarkerMenu, EmbarkerDockWidget
+</code></pre>
+<p>Each UI class MUST define all required class constants.
+If you forget them, the plugin will fail to initialize</p>
+<p>Every constructors are similar:</p>
+<pre><code class="language-python">def __init__(self, session: Session, commands: Commands, parent=None):
+</code></pre>
+<p>Please refer to the corresponding documentation pages for the objects provided by the constructor: <a href="../session/">Session</a> and <a href="../commands/">Commands</a>.</p>
+<h3 id="embarkertoolbar">EmbarkerToolBar</h3>
+<pre><code class="language-python">class MyToolbar(EmbarkerToolBar):
+    TITLE = &quot;My Toolbar&quot;
+    TOOLBAR_AREA = QtCore.Qt.TopToolBarArea
+    OBJECT_NAME = &quot;MyToolbar&quot;
+    APPEARANCE_PRIORITY = 98
+    VISIBLE_BY_DEFAULT = True
+    ENABLE_DURING_PLAYBACK = True
+</code></pre>
+<h3 id="embarkermenu">EmbarkerMenu</h3>
+<pre><code class="language-python">class MyMenu(EmbarkerMenu):
+    TITLE = &quot;My Menu&quot;
+    APPEARANCE_PRIORITY = 98
+</code></pre>
+<h3 id="embarkerdockwidget">EmbarkerDockWidget</h3>
+<pre><code class="language-python">class MyDock(EmbarkerDockWidget):
+    TITLE = &quot;My Dock&quot;
+    DOCK_AREA = QtCore.Qt.LeftDockWidgetArea
+    OBJECT_NAME = &quot;MyDock&quot;
+    APPEARANCE_PRIORITY = 98
+    VISIBLE_BY_DEFAULT = False
+    ENABLE_DURING_PLAYBACK = True
+</code></pre>
+<h2 id="common-methods">Common methods</h2>
+<h3 id="def-get_actionsself">def get_actions(self):</h3>
+<p>The <code>get_actions()</code> method allows you to define new application QAction.
+If implemented, it must return a strictly structured list of dictionaries.</p>
+<pre><code class="language-python">def get_actions(self):
+    return [{
+        'id': 'TestAction',
+        'text': 'TestAction',
+        'category': 'Global',
+        'icon': None,
+        'group': None,
+        'method': lambda *_: print('Hello ToolBar'),
+        'checkable': False,
+        'shortcut': None
+    }]
+</code></pre>
+<ul>
+<li><code>id</code> must be unique across the entire application</li>
+<li><code>icon</code> path to image.</li>
+<li><code>method</code> must be callable</li>
+<li><code>shortcut</code> must be a valid QKeySequence or None</li>
+<li>The structure must be respected strictly</li>
+</ul>
+<h3 id="def-update_viewself">def update_view(self)</h3>
+<p>update_view() is a callback method.</p>
+<p>It is automatically triggered when:
+- the frame changes
+- the application updates the UI</p>
+<h2 id="minimal-example">Minimal Example</h2>
+<pre><code class="language-python">&quot;&quot;&quot;
+This is a minimal example plugin
+&quot;&quot;&quot;
+
+import os
+from PySide6 import QtWidgets, QtCore
+from embarker.api import (
+    EmbarkerToolBar, Session, Commands, EmbarkerMenu, EmbarkerDockWidget)
+from embarker import callback
+
+
+PLUGIN_NAME = 'MinimalEmbarkerPlugin'
+__version__ = '1.0'
+__author__ = 'David Williams'
+
+
+class DockExample(EmbarkerDockWidget):
+    TITLE = 'Dock example'
+    DOCK_AREA = QtCore.Qt.LeftDockWidgetArea
+    OBJECT_NAME = 'MEP-DockExampe'
+    APPEARANCE_PRIORITY = 0
+    VISIBLE_BY_DEFAULT = True
+    ENABLE_DURING_PLAYBACK = True
+
+    def __init__(self, parent=None):
+        super().__init__(session)
+        layout = QtWidgets.QVBoxLayout(self)
+        layout.addWidget(QtWidgets.QLabel('Dock Test'))
+        layout.addStretch()
+
+    def update_view(self):
+        print('Current frame: ', self.session.playlist.frame)
+
+    def get_actions(self):
+        return [{
+            'id': 'TestAction',
+            'text': 'Test',
+            'category': 'Test',
+            'icon': None,
+            'group': None,
+            'method': lambda *_: print('Test action triggered'),
+            'checkable': False,
+            'shortcut': QtGui.QKeySequence('CTRL+T'),
+        }]
+
+
+class ToolbarExemple(EmbarkerToolBar):
+    TITLE: str = &quot;Test&quot;
+    TOOLBAR_AREA: QtCore.Qt.ToolBarArea = QtCore.Qt.TopToolBarArea
+    OBJECT_NAME: str = 'TestToolbar'
+    APPEARANCE_PRIORITY: int = 98
+    VISIBLE_BY_DEFAULT: bool = True
+    ENABLE_DURING_PLAYBACK: bool = True
+
+    def __init__(self, parent=None):
+        super().__init__(session, commands, parent=parent)
+        button = QtWidgets.QPushButton('Test')
+        self.addWidget(button)
+
+
+class TestMenu(EmbarkerMenu):
+    TITLE = 'Test'
+    APPEARANCE_PRIORITY = 98
+
+    def __init__(self, parent=None):
+        super().__init__(session, commands, parent=parent)
+        self.addAction('Test 1')
+        self.addAction('Test 2')
+        self.addAction('Test 3')
+        self.addAction('Test 4')
+        self.addAction('Test 5')
+        self.addAction('Test 6')
+
+
+# Register callback the plugin must register.
+CALLBACKS = {
+    callback.BEFORE_NEW_SESSION: [lambda *_: print('New session will be created')]
+}
+
+# Register UI classes the plugin must register.
+UI_CLASSES = [
+    TestMenu,
+    TestToolbar,
+    DockExample,
+]
+</code></pre>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../build/" class="btn btn-neutral float-left" title="Embarker Build Guide"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../commands/" class="btn btn-neutral float-right" title="Functions">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/DreamWall-Animation/embarker" class="fa fa-code-fork" style="color: #fcfcfc"> DreamWall Embarker</a>
+        </span>
+    
+    
+      <span><a href="../build/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../commands/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

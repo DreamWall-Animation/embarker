@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://dreamwall-animation.github.io/embarker/canvasmodel/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>CanvasModel - DreamWall Embarker</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "CanvasModel";
+        var mkdocs_page_input_path = "canvasmodel.md";
+        var mkdocs_page_url = "/embarker/canvasmodel/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="..">
+          <img src="../images/dreamwall.png" class="logo" alt="Logo"/>
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../commandline/">Command-line</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../environment/">Environment</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../playlist/">Playlist file</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Dev</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../build/">Embarker Build Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../pythonplugin/">Write an Embarker Plugin</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >API</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" href="../commands/">Functions</a>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" >Classes</a>
+    <ul class="current">
+                <li class="toctree-l3"><a class="reference internal" href="../container/">VideoContainer</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../session/">Session</a>
+                </li>
+                <li class="toctree-l3 current"><a class="reference internal current" href="#">CanvasModel</a>
+    <ul class="current">
+    <li class="toctree-l4"><a class="reference internal" href="#method-index">Method Index</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#method-descriptions">Method Descriptions</a>
+    </li>
+    </ul>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../callback/">Available callback events</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../download/">Download</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">DreamWall Embarker</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Dev</li>
+          <li class="breadcrumb-item">API</li>
+          <li class="breadcrumb-item">Classes</li>
+      <li class="breadcrumb-item active">CanvasModel</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/DreamWall-Animation/embarker/edit/master/docs/canvasmodel.md">Edit on DreamWall Embarker</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="canvasmodel">CanvasModel</h1>
+<p>Core data model representing a drawable canvas with layers, images, annotations,
+and undo/redo capabilities.</p>
+<p>This class is responsible for managing:
+- Layer stack and shapes
+- Image overlays
+- Selection system
+- Undo/redo history
+- Serialization/deserialization</p>
+<p>⚠️ Manipulate this class with caution. Misuse may break the application.</p>
+<hr />
+<h2 id="method-index">Method Index</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Return</th>
+<th style="text-align: left;">Method</th>
+<th style="text-align: left;">Arguments</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>list</code></td>
+<td style="text-align: left;"><a href="#copy_selection"><code>copy_selection</code></a></td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#paste"><code>paste</code></a></td>
+<td style="text-align: left;"><code>shapes</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#duplicate_selection"><code>duplicate_selection</code></a></td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>list</code></td>
+<td style="text-align: left;"><a href="#texts"><code>texts</code></a></td>
+<td style="text-align: left;"><em>(property)</em></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#append_image"><code>append_image</code></a></td>
+<td style="text-align: left;"><code>image</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#delete_image"><code>delete_image</code></a></td>
+<td style="text-align: left;"><code>index</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#duplicate_layer"><code>duplicate_layer</code></a></td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#set_baseimage"><code>set_baseimage</code></a></td>
+<td style="text-align: left;"><code>image</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#add_layer"><code>add_layer</code></a></td>
+<td style="text-align: left;"><code>undo=True, name=None, locked=False, blend_mode=None, index=None</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#add_layer_image"><code>add_layer_image</code></a></td>
+<td style="text-align: left;"><code>path, blend_mode=None, undo=True</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#add_image"><code>add_image</code></a></td>
+<td style="text-align: left;"><code>image</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#move_layer"><code>move_layer</code></a></td>
+<td style="text-align: left;"><code>old_index, new_index</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#add_shape"><code>add_shape</code></a></td>
+<td style="text-align: left;"><code>shape</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#set_current_blend_mode_name"><code>set_current_blend_mode_name</code></a></td>
+<td style="text-align: left;"><code>name</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#add_undo_state"><code>add_undo_state</code></a></td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#restore_state"><code>restore_state</code></a></td>
+<td style="text-align: left;"><code>state</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#undo"><code>undo</code></a></td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#redo"><code>redo</code></a></td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>dict</code></td>
+<td style="text-align: left;"><a href="#default_state"><code>default_state</code></a></td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>dict</code></td>
+<td style="text-align: left;"><a href="#serialize"><code>serialize</code></a></td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#deserialize"><code>deserialize</code></a></td>
+<td style="text-align: left;"><code>data</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>bool</code></td>
+<td style="text-align: left;"><a href="#is_null"><code>is_null</code></a></td>
+<td style="text-align: left;">-</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="method-descriptions">Method Descriptions</h2>
+<h3 id="copy_selection"><code>copy_selection</code></h3>
+<p>Copies the current selection.</p>
+<ul>
+<li>Returns full shapes if entirely selected</li>
+<li>Splits strokes if partially selected</li>
+</ul>
+<h3 id="paste"><code>paste</code></h3>
+<p>Pastes shapes into the current layer and updates selection.</p>
+<h3 id="duplicate_selection"><code>duplicate_selection</code></h3>
+<p>Duplicates the current selection by copying and pasting it.</p>
+<h3 id="texts"><code>texts</code></h3>
+<p>Returns all text elements from the layer stack.</p>
+<h3 id="append_image"><code>append_image</code></h3>
+<p>Adds an image to the image stack and registers undo state.</p>
+<h3 id="delete_image"><code>delete_image</code></h3>
+<p>Removes an image from the image stack by index.</p>
+<h3 id="duplicate_layer"><code>duplicate_layer</code></h3>
+<p>Duplicates the currently active layer.</p>
+<h3 id="set_baseimage"><code>set_baseimage</code></h3>
+<p>Sets the base image of the canvas and updates its bounds.</p>
+<h3 id="add_layer"><code>add_layer</code></h3>
+<p>Adds a new layer to the layer stack.</p>
+<p>Supports:
+- Custom name (auto-unique)
+- Lock state
+- Blend mode
+- Insert index</p>
+<h3 id="add_layer_image"><code>add_layer_image</code></h3>
+<p>Creates a new layer and loads an image into it.</p>
+<h3 id="add_image"><code>add_image</code></h3>
+<p>Adds an image as a drawable <code>Bitmap</code> shape using viewport coordinates.</p>
+<h3 id="move_layer"><code>move_layer</code></h3>
+<p>Moves a layer from one index to another.</p>
+<h3 id="add_shape"><code>add_shape</code></h3>
+<p>Adds a shape to the current layer.</p>
+<h3 id="set_current_blend_mode_name"><code>set_current_blend_mode_name</code></h3>
+<p>Sets the blend mode of the current layer.</p>
+<h3 id="add_undo_state"><code>add_undo_state</code></h3>
+<p>Pushes the current state into the undo stack.</p>
+<ul>
+<li>Clears redo stack</li>
+<li>Stores full snapshot of:</li>
+<li>layers</li>
+<li>images</li>
+<li>properties</li>
+</ul>
+<h3 id="restore_state"><code>restore_state</code></h3>
+<p>Restores the canvas from a saved state.</p>
+<h3 id="undo"><code>undo</code></h3>
+<p>Reverts to the previous state.</p>
+<ul>
+<li>Pops from undo stack</li>
+<li>Pushes to redo stack</li>
+</ul>
+<h3 id="redo"><code>redo</code></h3>
+<p>Restores the next state from redo stack.</p>
+<h3 id="default_state"><code>default_state</code></h3>
+<p>Returns a default empty canvas state.</p>
+<h3 id="serialize"><code>serialize</code></h3>
+<p>Serializes the canvas model into a dictionary.</p>
+<p>Includes:
+- Layer stack
+- Metadata
+- Wash settings
+- Comment</p>
+<h3 id="deserialize"><code>deserialize</code></h3>
+<p>Loads the canvas state from serialized data.</p>
+<ul>
+<li>Resets undo/redo stacks</li>
+<li>Restores layer stack and properties</li>
+</ul>
+<h3 id="is_null"><code>is_null</code></h3>
+<p>Checks whether the canvas is empty.</p>
+<p>Returns <code>True</code> if:
+- No base image
+- No layers
+- No meaningful comment</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../session/" class="btn btn-neutral float-left" title="Session"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../callback/" class="btn btn-neutral float-right" title="Available callback events">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/DreamWall-Animation/embarker" class="fa fa-code-fork" style="color: #fcfcfc"> DreamWall Embarker</a>
+        </span>
+    
+    
+      <span><a href="../session/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../callback/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

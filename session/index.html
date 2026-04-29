@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://dreamwall-animation.github.io/embarker/session/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Session - DreamWall Embarker</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Session";
+        var mkdocs_page_input_path = "session.md";
+        var mkdocs_page_url = "/embarker/session/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="..">
+          <img src="../images/dreamwall.png" class="logo" alt="Logo"/>
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../commandline/">Command-line</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../environment/">Environment</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../playlist/">Playlist file</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Dev</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../build/">Embarker Build Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../pythonplugin/">Write an Embarker Plugin</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >API</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" href="../commands/">Functions</a>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" >Classes</a>
+    <ul class="current">
+                <li class="toctree-l3"><a class="reference internal" href="../container/">VideoContainer</a>
+                </li>
+                <li class="toctree-l3 current"><a class="reference internal current" href="#">Session</a>
+    <ul class="current">
+    <li class="toctree-l4"><a class="reference internal" href="#variable-index">Variable Index</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#variables-descriptions">Variables Descriptions</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#method-index">Method Index</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#method-descriptions">Method Descriptions</a>
+    </li>
+    </ul>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../canvasmodel/">CanvasModel</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../callback/">Available callback events</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../download/">Download</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">DreamWall Embarker</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Dev</li>
+          <li class="breadcrumb-item">API</li>
+          <li class="breadcrumb-item">Classes</li>
+      <li class="breadcrumb-item active">Session</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/DreamWall-Animation/embarker/edit/master/docs/session.md">Edit on DreamWall Embarker</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="session">Session</h1>
+<p>A Session is an abstract representation of the currently opened document. It links annotations, preferences, and media containers.</p>
+<p>To get the current application session object:</p>
+<pre><code class="language-python">from embarker.session import get_session
+session = get_session()
+</code></pre>
+<h2 id="variable-index">Variable Index</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Value type</th>
+<th style="text-align: left;">Variable</th>
+<th style="text-align: left;">Variable type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Preferences</code></td>
+<td style="text-align: left;"><a href="#preferences">preferences</a></td>
+<td style="text-align: left;">property</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None | str</code></td>
+<td style="text-align: left;">filepath</td>
+<td style="text-align: left;">variable</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Playlist</code></td>
+<td style="text-align: left;">playlist</td>
+<td style="text-align: left;">variable</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>dict({(id: str, frame: int) : CanvasModel})</code></td>
+<td style="text-align: left;">annotations</td>
+<td style="text-align: left;">variable</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>OnionSkin</code></td>
+<td style="text-align: left;">onionskin</td>
+<td style="text-align: left;">variable</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>dict</code></td>
+<td style="text-align: left;"><a href="#meta-data">metadata</a></td>
+<td style="text-align: left;">variable</td>
+</tr>
+</tbody>
+</table>
+<h2 id="variables-descriptions">Variables Descriptions</h2>
+<h3 id="preferences">Preferences</h3>
+<p>A handler for persistent preferences, allowing custom user settings to be saved and accessed globally.</p>
+<pre><code class="language-python">self.session.preferences.set('My custom pref', value)
+self.session.preferences.get('My custom pref', value, default)
+</code></pre>
+<h3 id="meta-data">Meta-data</h3>
+<p>Free dictionnary to store custom user data.</p>
+<h2 id="method-index">Method Index</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Return</th>
+<th style="text-align: left;">Method</th>
+<th style="text-align: left;">Arguments</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#add_annotation_at"><code>add_annotation_at</code></a></td>
+<td style="text-align: left;"><code>frame: int, annotation: CanvasModel</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#cache_annotations"><code>cache_annotations</code></a></td>
+<td style="text-align: left;"><code>force=True</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#cache_current_annotation"><code>cache_current_annotation</code></a></td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#clear_empty_annotations"><code>clear_empty_annotations</code></a></td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>None</code></td>
+<td style="text-align: left;"><a href="#delete_annotation_at"><code>delete_annotation_at</code></a></td>
+<td style="text-align: left;"><code>frame: int</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>CanvasModel | None</code></td>
+<td style="text-align: left;"><a href="#get_annotation_at"><code>get_annotation_at</code></a></td>
+<td style="text-align: left;"><code>frame: int, viewportmapper: NDCViewportMapper = None</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>list[int]</code></td>
+<td style="text-align: left;"><a href="#get_annotated_frames"><code>get_annotated_frames</code></a></td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>VideoContainer | ImageSequenceContainer</code></td>
+<td style="text-align: left;"><a href="#get_container"><code>get_container</code></a></td>
+<td style="text-align: left;"><code>container_id</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>dict</code></td>
+<td style="text-align: left;"><a href="#get_container_annotations"><code>get_container_annotations</code></a></td>
+<td style="text-align: left;"><code>container_id, include_empty_current_frame=False, exportable_only=False</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>list</code></td>
+<td style="text-align: left;"><a href="#get_containers_in_range"><code>get_containers_in_range</code></a></td>
+<td style="text-align: left;"><code>start_frame, end_frame</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>CanvasModel</code></td>
+<td style="text-align: left;"><a href="#get_current_annotation"><code>get_current_annotation</code></a></td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>VideoContainer | ImageSequenceContainer</code></td>
+<td style="text-align: left;"><a href="#get_current_container"><code>get_current_container</code></a></td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>int</code></td>
+<td style="text-align: left;"><a href="#get_current_container_index"><code>get_current_container_index</code></a></td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>bool</code></td>
+<td style="text-align: left;"><a href="#is_empty"><code>is_empty</code></a></td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>QtGui.QPixmap</code></td>
+<td style="text-align: left;"><a href="#render_frame"><code>render_frame</code></a></td>
+<td style="text-align: left;"><code>frame, background=True</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>dict[int, QtGui.QPixmap]</code></td>
+<td style="text-align: left;"><a href="#render_container_annotated_frames"><code>render_container_annotated_frames</code></a></td>
+<td style="text-align: left;"><code>container_id</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>dict</code></td>
+<td style="text-align: left;"><a href="#serialize"><code>serialize</code></a></td>
+<td style="text-align: left;">-</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="method-descriptions">Method Descriptions</h2>
+<h3 id="add_annotation_at"><code>add_annotation_at</code></h3>
+<p>Adds a <code>CanvasModel</code> at a specific absolute timeline frame. The internal dictionary is re-sorted based on the playlist order to maintain chronological consistency.</p>
+<h3 id="cache_annotations"><code>cache_annotations</code></h3>
+<p>Renders and stores all session annotations as ndarrays in the playlist's image override cache. Useful for performance during playback.</p>
+<h3 id="cache_current_annotation"><code>cache_current_annotation</code></h3>
+<p>Caches the annotation of the current frame. If the annotation is null, it removes any existing image override for this specific frame.</p>
+<h3 id="clear_empty_annotations"><code>clear_empty_annotations</code></h3>
+<p>Filters the internal annotations dictionary to remove all entries where the <code>CanvasModel</code> is considered null or empty.</p>
+<h3 id="delete_annotation_at"><code>delete_annotation_at</code></h3>
+<p>Deletes the <code>CanvasModel</code> and removes any associated image override at the specified absolute timeline frame.</p>
+<h3 id="get_annotation_at"><code>get_annotation_at</code></h3>
+<p>Returns the <code>CanvasModel</code> located at the absolute timeline frame. If no annotation exists at that position, it returns a new <code>CanvasModel</code> (if a <code>viewportmapper</code> is provided).</p>
+<h3 id="get_annotated_frames"><code>get_annotated_frames</code></h3>
+<p>Returns a sorted list of all absolute frames across the entire timeline that currently contain an annotation.</p>
+<h3 id="get_container"><code>get_container</code></h3>
+<p>Returns the media container instance (Video or Image Sequence) associated with the given <code>container_id</code>.</p>
+<h3 id="get_container_annotations"><code>get_container_annotations</code></h3>
+<p>Returns a dictionary of all annotations belonging to a specific container ID. Can optionally include the current frame even if empty, or filter by 'exportable' metadata.</p>
+<h3 id="get_containers_in_range"><code>get_containers_in_range</code></h3>
+<p>Returns a list of all unique media containers that are present between the specified <code>start_frame</code> and <code>end_frame</code> on the global timeline.</p>
+<h3 id="get_current_annotation"><code>get_current_annotation</code></h3>
+<p>Convenience method to return the <code>CanvasModel</code> at the current playlist frame. Returns <code>None</code> if the frame is not yet annotated.</p>
+<h3 id="get_current_container"><code>get_current_container</code></h3>
+<p>Returns the media container currently active at the player's current frame.</p>
+<h3 id="get_current_container_index"><code>get_current_container_index</code></h3>
+<p>Returns the integer index of the currently active container within the playlist's sequence.</p>
+<h3 id="is_empty"><code>is_empty</code></h3>
+<p>Returns <code>True</code> if the session has no associated filepath and the playlist contains no media containers.</p>
+<h3 id="render_frame"><code>render_frame</code></h3>
+<p>Renders a specific frame to a <code>QPixmap</code>. If <code>background</code> is <code>True</code>, the video frame is drawn under the annotation. If <code>False</code>, the annotation is rendered on a transparent background.</p>
+<h3 id="render_container_annotated_frames"><code>render_container_annotated_frames</code></h3>
+<p>Renders all exportable annotated frames belonging to a specific container and returns them as a dictionary mapping relative frames to <code>QPixmap</code> objects.</p>
+<h3 id="serialize"><code>serialize</code></h3>
+<p>Converts the full session state (version, containers, annotations, and metadata) into a dictionary suitable for binary serialization (msgpack).</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../container/" class="btn btn-neutral float-left" title="VideoContainer"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../canvasmodel/" class="btn btn-neutral float-right" title="CanvasModel">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/DreamWall-Animation/embarker" class="fa fa-code-fork" style="color: #fcfcfc"> DreamWall Embarker</a>
+        </span>
+    
+    
+      <span><a href="../container/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../canvasmodel/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

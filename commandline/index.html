@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://dreamwall-animation.github.io/embarker/commandline/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Command-line - DreamWall Embarker</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Command-line";
+        var mkdocs_page_input_path = "commandline.md";
+        var mkdocs_page_url = "/embarker/commandline/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="..">
+          <img src="../images/dreamwall.png" class="logo" alt="Logo"/>
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="#">Command-line</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#usage">Usage</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#positional-arguments">Positional Arguments</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#optional-flags-and-arguments">Optional Flags and Arguments</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#session-playlist-management">Session &amp; Playlist Management</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#plugin-environment-control">Plugin &amp; Environment Control</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#system-ui-settings">System &amp; UI Settings</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#example-commands">Example Commands</a>
+    </li>
+    </ul>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../environment/">Environment</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../playlist/">Playlist file</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Dev</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../build/">Embarker Build Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../pythonplugin/">Write an Embarker Plugin</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >API</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../commands/">Functions</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Classes</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../container/">VideoContainer</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../session/">Session</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../canvasmodel/">CanvasModel</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../callback/">Available callback events</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../download/">Download</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">DreamWall Embarker</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Command-line</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/DreamWall-Animation/embarker/edit/master/docs/commandline.md">Edit on DreamWall Embarker</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="embarker-cli-reference-guide">Embarker CLI Reference Guide</h1>
+<p><strong>Embarker</strong> is a professional, lightweight video review player designed for pipeline integration. When running the compiled executable, you can use several command-line arguments to automate the loading of assets, plugins, and session states.</p>
+<hr />
+<h2 id="usage">Usage</h2>
+<p><code>Embarker.exe [filepaths] [options]</code></p>
+<hr />
+<h2 id="positional-arguments">Positional Arguments</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Argument</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>filepaths</code></td>
+<td style="text-align: left;">A list of one or more video file paths to open immediately upon launch. Supports standard video extensions defined in the decoder module.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="optional-flags-and-arguments">Optional Flags and Arguments</h2>
+<h3 id="session-playlist-management">Session &amp; Playlist Management</h3>
+<ul>
+<li><strong><code>-pl, --playlist_file &lt;path&gt;</code></strong>: Loads a specific playlist file into the player.</li>
+<li><strong><code>-s, --session_file &lt;path&gt;</code></strong>: Loads a previously saved Embarker session.</li>
+<li><strong><code>-asn, --open_session_file_as_new_file</code></strong>: Opens the session data as a new, unsaved file. This is designed for pipelines to prevent users from accidentally overwriting published reviews.</li>
+</ul>
+<h3 id="plugin-environment-control">Plugin &amp; Environment Control</h3>
+<ul>
+<li><strong><code>-pp, --python_plugins &lt;paths...&gt;</code></strong>: Space-separated list of Python scripts to be injected as plugins.</li>
+<li><strong><code>-env, --environment_files &lt;paths...&gt;</code></strong>: Loads additional <code>.env</code> files to set or append to system environment variables.
+    &gt; <strong>Note:</strong> When frozen, the application automatically searches for a <code>.env</code> file and a <code>/plugins</code> folder in the executable's directory.</li>
+</ul>
+<h3 id="system-ui-settings">System &amp; UI Settings</h3>
+<ul>
+<li><strong><code>-osn, --os_native_style</code></strong>: Forces the application to use the operating system's native UI style instead of the custom dark "Fusion" theme.</li>
+<li><strong><code>-d, --debug</code></strong>: Activates debug mode for troubleshooting.</li>
+</ul>
+<hr />
+<h2 id="example-commands">Example Commands</h2>
+<p><strong>Open multiple videos:</strong>
+```bash
+Embarker.exe "C:/Projects/Shot_01.mp4" "C:/Projects/Shot_02.mov"</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href=".." class="btn btn-neutral float-left" title="Home"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../environment/" class="btn btn-neutral float-right" title="Environment">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/DreamWall-Animation/embarker" class="fa fa-code-fork" style="color: #fcfcfc"> DreamWall Embarker</a>
+        </span>
+    
+    
+      <span><a href=".." style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../environment/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

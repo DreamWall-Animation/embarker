@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://dreamwall-animation.github.io/embarker/build/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Embarker Build Guide - DreamWall Embarker</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Embarker Build Guide";
+        var mkdocs_page_input_path = "build.md";
+        var mkdocs_page_url = "/embarker/build/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="..">
+          <img src="../images/dreamwall.png" class="logo" alt="Logo"/>
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../commandline/">Command-line</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../environment/">Environment</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../playlist/">Playlist file</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Dev</span></p>
+              <ul class="current">
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Embarker Build Guide</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#1-requirements">1. Requirements</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#2-install-python">2. Install Python</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#3-install-global-dependencies">3. Install Global Dependencies</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#4-install-prepare-ffmpeg">4. Install / Prepare FFmpeg</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#option-a-clone-a-prebuilt-repository-recommended">Option A — Clone a prebuilt repository (recommended)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#option-b-use-your-own-ffmpeg">Option B — Use your own FFmpeg</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#5-project-structure">5. Project Structure</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#6-run-the-build">6. Run the Build</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#simple-build">Simple build:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#advanced-build">Advanced build:</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#7-build-output">7. Build Output</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#8-create-archive">8. Create Archive</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#9-key-options">9. Key Options</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#build-directory">🔹 Build Directory</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#preserve-virtual-environment">🔹 Preserve Virtual Environment</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#create-archive">🔹 Create Archive</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#additional-requirements">🔹 Additional Requirements</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#plugin-modules">🔹 Plugin Modules</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#local-library-paths">🔹 Local Library Paths</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#additional-includes">🔹 Additional Includes</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#environment-file">🔹 Environment File</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#ffmpeg-path">🔹 FFmpeg Path</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#full-example">🔹 Full Example</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#10-troubleshooting">10. Troubleshooting</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#missing-ffmpeg">Missing FFmpeg</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#python-version-issues">Python version issues</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#build-fails">Build fails</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#11-notes">11. Notes</a>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../pythonplugin/">Write an Embarker Plugin</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >API</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../commands/">Functions</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Classes</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../container/">VideoContainer</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../session/">Session</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../canvasmodel/">CanvasModel</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../callback/">Available callback events</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../download/">Download</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">DreamWall Embarker</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Dev</li>
+      <li class="breadcrumb-item active">Embarker Build Guide</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/DreamWall-Animation/embarker/edit/master/docs/build.md">Edit on DreamWall Embarker</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="embarker-build-guide">Embarker Build Guide</h1>
+<p>This document explains how to build <strong>Embarker</strong> using the provided <code>build.py</code> script.</p>
+<hr />
+<h2 id="1-requirements">1. Requirements</h2>
+<ul>
+<li>Python <strong>3.11</strong></li>
+<li>Windows OS (script is Windows-oriented)</li>
+<li>Git</li>
+<li>pip</li>
+</ul>
+<hr />
+<h2 id="2-install-python">2. Install Python</h2>
+<p>Download Python 3.11:</p>
+<p>https://www.python.org/downloads/</p>
+<p>During installation:
+- ✔ Add Python to PATH
+- ✔ Install for all users</p>
+<p>Verify installation:</p>
+<pre><code class="language-bash">python --version
+</code></pre>
+<hr />
+<h2 id="3-install-global-dependencies">3. Install Global Dependencies</h2>
+<pre><code class="language-bash">pip install --upgrade pip
+pip install cx_Freeze pyyaml requests
+</code></pre>
+<hr />
+<h2 id="4-install-prepare-ffmpeg">4. Install / Prepare FFmpeg</h2>
+<h3 id="option-a-clone-a-prebuilt-repository-recommended">Option A — Clone a prebuilt repository (recommended)</h3>
+<pre><code class="language-bash">git clone https://github.com/BtbN/FFmpeg-Builds.git
+</code></pre>
+<p>Locate:</p>
+<pre><code>bin/ffmpeg.exe
+bin/ffprobe.exe
+</code></pre>
+<p>Copy them into:</p>
+<pre><code>ffmpeg/
+ ├── ffmpeg.exe
+ └── ffprobe.exe
+</code></pre>
+<hr />
+<h3 id="option-b-use-your-own-ffmpeg">Option B — Use your own FFmpeg</h3>
+<p>You can specify the path directly:</p>
+<pre><code class="language-bash">python build.py -ffmpeg path/to/ffmpeg.exe
+</code></pre>
+<hr />
+<h2 id="5-project-structure">5. Project Structure</h2>
+<pre><code>project/
+ ├── build.py
+ ├── setup.py
+ ├── requirements.txt
+ ├── embarker/
+ ├── plugins/
+ ├── ffmpeg/
+ │   ├── ffmpeg.exe
+ │   └── ffprobe.exe
+</code></pre>
+<hr />
+<h2 id="6-run-the-build">6. Run the Build</h2>
+<h3 id="simple-build">Simple build:</h3>
+<pre><code class="language-bash">python build.py
+</code></pre>
+<hr />
+<h3 id="advanced-build">Advanced build:</h3>
+<pre><code class="language-bash">python build.py ^
+  -d build ^
+  -z ^
+  -ffmpeg ffmpeg/ffmpeg.exe ^
+  -i embarker ^
+  -pm plugins/my_plugin.py ^
+  -l external_libs ^
+  -r extra_requirements.txt ^
+  -e .env
+</code></pre>
+<hr />
+<h2 id="7-build-output">7. Build Output</h2>
+<p>After building:</p>
+<pre><code>build/
+ └── embarker-&lt;version&gt;.b&lt;build_number&gt;/
+     ├── embarker.exe
+     ├── lib/
+     ├── plugins/
+     ├── ffmpeg.exe
+     ├── ffprobe.exe
+     └── .env (optional)
+</code></pre>
+<hr />
+<h2 id="8-create-archive">8. Create Archive</h2>
+<pre><code class="language-bash">python build.py -z
+</code></pre>
+<p>This will generate:</p>
+<pre><code>embarker-&lt;version&gt;.zip
+</code></pre>
+<hr />
+<h2 id="9-key-options">9. Key Options</h2>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>(Long)</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-d</code></td>
+<td><code>--build_directory</code></td>
+<td>Build directory</td>
+</tr>
+<tr>
+<td><code>-p</code></td>
+<td><code>--preserve_venv</code></td>
+<td>Preserve virtual environment</td>
+</tr>
+<tr>
+<td><code>-z</code></td>
+<td><code>--create_archive</code></td>
+<td>Create archive</td>
+</tr>
+<tr>
+<td><code>-r</code></td>
+<td><code>--additional_requirements</code></td>
+<td>Additional requirements</td>
+</tr>
+<tr>
+<td><code>-pm</code></td>
+<td><code>--plugin_modules</code></td>
+<td>Plugin modules</td>
+</tr>
+<tr>
+<td><code>-l</code></td>
+<td><code>--local_library_paths</code></td>
+<td>Local libraries</td>
+</tr>
+<tr>
+<td><code>-i</code></td>
+<td><code>--additional_includes</code></td>
+<td>Additional includes</td>
+</tr>
+<tr>
+<td><code>-e</code></td>
+<td><code>--environment_file</code></td>
+<td>Environment file</td>
+</tr>
+<tr>
+<td><code>-ffmpeg</code></td>
+<td><code>--ffmpeg_path</code></td>
+<td>FFmpeg path to include</td>
+</tr>
+</tbody>
+</table>
+<h3 id="build-directory">🔹 Build Directory</h3>
+<p><strong>Short:</strong> <code>-d</code>
+<strong>Long:</strong> <code>--build_directory</code></p>
+<p>Defines where the build process will output all generated files.</p>
+<p><strong>Example:</strong></p>
+<pre><code class="language-bash">python build.py --build_directory build_output
+</code></pre>
+<p>If not specified, the script uses the current working directory.</p>
+<hr />
+<h3 id="preserve-virtual-environment">🔹 Preserve Virtual Environment</h3>
+<p><strong>Short:</strong> <code>-p</code>
+<strong>Long:</strong> <code>--preserve_venv</code></p>
+<p>By default, the virtual environment created for the build is deleted after completion.
+This flag prevents deletion so you can reuse or debug the environment.</p>
+<p><strong>Example:</strong></p>
+<pre><code class="language-bash">python build.py --preserve_venv
+</code></pre>
+<hr />
+<h3 id="create-archive">🔹 Create Archive</h3>
+<p><strong>Short:</strong> <code>-z</code>
+<strong>Long:</strong> <code>--create_archive</code></p>
+<p>Creates a <code>.zip</code> archive of the final build output.</p>
+<p><strong>Example:</strong></p>
+<pre><code class="language-bash">python build.py --create_archive
+</code></pre>
+<hr />
+<h3 id="additional-requirements">🔹 Additional Requirements</h3>
+<p><strong>Short:</strong> <code>-r</code>
+<strong>Long:</strong> <code>--additional_requirements</code></p>
+<p>Install extra Python dependencies in the temporary virtual environment.</p>
+<p><strong>Example:</strong></p>
+<pre><code class="language-bash">python build.py --additional_requirements extra_requirements.txt
+</code></pre>
+<p>Multiple files:</p>
+<pre><code class="language-bash">python build.py -r requirements1.txt requirements2.txt
+</code></pre>
+<hr />
+<h3 id="plugin-modules">🔹 Plugin Modules</h3>
+<p><strong>Short:</strong> <code>-pm</code>
+<strong>Long:</strong> <code>--plugin_modules</code></p>
+<p>Specifies additional Python plugin files to include in the build.</p>
+<p><strong>Example:</strong></p>
+<pre><code class="language-bash">python build.py --plugin_modules plugins/my_plugin.py
+</code></pre>
+<hr />
+<h3 id="local-library-paths">🔹 Local Library Paths</h3>
+<p><strong>Short:</strong> <code>-l</code>
+<strong>Long:</strong> <code>--local_library_paths</code></p>
+<p>Includes external or local Python packages not automatically bundled.</p>
+<p><strong>Example:</strong></p>
+<pre><code class="language-bash">python build.py --local_library_paths path/to/my_lib
+</code></pre>
+<hr />
+<h3 id="additional-includes">🔹 Additional Includes</h3>
+<p><strong>Short:</strong> <code>-i</code>
+<strong>Long:</strong> <code>--additional_includes</code></p>
+<p>Adds extra Python modules to force inclusion in the build.</p>
+<p><strong>Example:</strong></p>
+<pre><code class="language-bash">python build.py --additional_includes numpy scipy
+</code></pre>
+<hr />
+<h3 id="environment-file">🔹 Environment File</h3>
+<p><strong>Short:</strong> <code>-e</code>
+<strong>Long:</strong> <code>--environment_file</code></p>
+<p>Includes a <code>.env</code> file in the final build.</p>
+<p><strong>Example:</strong></p>
+<pre><code class="language-bash">python build.py --environment_file .env
+</code></pre>
+<hr />
+<h3 id="ffmpeg-path">🔹 FFmpeg Path</h3>
+<p><strong>Short:</strong> <code>-ffmpeg</code>
+<strong>Long:</strong> <code>--ffmpeg_path</code></p>
+<p>Specifies the path to <code>ffmpeg.exe</code>.</p>
+<p><strong>Example:</strong></p>
+<pre><code class="language-bash">python build.py --ffmpeg_path ffmpeg/ffmpeg.exe
+</code></pre>
+<hr />
+<h3 id="full-example">🔹 Full Example</h3>
+<pre><code class="language-bash">python build.py ^
+  -d build ^
+  -z ^
+  -r extra_requirements.txt ^
+  -pm plugins/plugin1.py ^
+  -l libs/custom ^
+  -i numpy scipy ^
+  -e .env ^
+  -ffmpeg ffmpeg/ffmpeg.exe
+</code></pre>
+<hr />
+<h2 id="10-troubleshooting">10. Troubleshooting</h2>
+<h3 id="missing-ffmpeg">Missing FFmpeg</h3>
+<pre><code>FileNotFoundError: FFMPEG not found
+</code></pre>
+<p>→ Provide correct path or place executables in <code>ffmpeg/</code></p>
+<hr />
+<h3 id="python-version-issues">Python version issues</h3>
+<p>Ensure Python 3.11 is used:</p>
+<pre><code class="language-bash">py -3.11 -m venv
+</code></pre>
+<hr />
+<h3 id="build-fails">Build fails</h3>
+<ul>
+<li>Check dependencies</li>
+<li>Check <code>setup.py</code></li>
+<li>Ensure correct paths</li>
+</ul>
+<hr />
+<h2 id="11-notes">11. Notes</h2>
+<ul>
+<li>The script is <strong>Windows-specific</strong></li>
+<li>cx_Freeze is used for packaging</li>
+<li>Some libraries are manually copied due to limitations</li>
+</ul>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../playlist/" class="btn btn-neutral float-left" title="Playlist file"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../pythonplugin/" class="btn btn-neutral float-right" title="Write an Embarker Plugin">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/DreamWall-Animation/embarker" class="fa fa-code-fork" style="color: #fcfcfc"> DreamWall Embarker</a>
+        </span>
+    
+    
+      <span><a href="../playlist/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../pythonplugin/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
