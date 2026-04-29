@@ -1,5 +1,6 @@
-from PySide6 import QtWidgets, QtCore, QtGui
+from PySide6 import QtWidgets, QtCore
 from paintcanvas.shapesettings import ColorButton
+from paintcanvas.widget import SliderSetValueAtClickPosition
 
 
 class WashSettings(QtWidgets.QWidget):
@@ -17,7 +18,7 @@ class WashSettings(QtWidgets.QWidget):
         self.wash_color.color = self.canvas.model.wash_color
         self.wash_color.edited.connect(self._wash_changed)
         self.wash_color.edited.connect(self.canvas.model.add_undo_state)
-        self.wash_opacity = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+        self.wash_opacity = SliderSetValueAtClickPosition(QtCore.Qt.Horizontal)
         self.wash_opacity.valueChanged.connect(self._wash_changed)
         self.wash_opacity.sliderPressed.connect(self.start_slide)
         self.wash_opacity.sliderReleased.connect(self.end_slide)

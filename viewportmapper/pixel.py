@@ -48,6 +48,20 @@ class PixelViewportMapper(ViewportMapper):
         height = self.to_units(pixels_rect.height())
         return QtCore.QRectF(top_left.x(), top_left.y(), width, height)
 
+    def get_units_pixel_size(self):
+        return QtCore.QSizeF(1, 1)
+
+    def get_pixel_size_ratio(self):
+        return QtCore.QSizeF(1, 1)
+
+    def get_viewport_pixel_size(self):
+        # TODO
+        raise NotImplementedError
+
+    def set_viewport_pixel_size(self, size):
+        # TODO
+        raise NotImplementedError
+
     def zoom_in(self, factor=10.0) -> float:
         self.zoom += self.zoom * factor
         self.zoom = min(self.zoom, 5.0)

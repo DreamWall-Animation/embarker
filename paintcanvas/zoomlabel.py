@@ -20,7 +20,7 @@ class ZoomLabel(QtWidgets.QWidget):
             menu.addAction(action)
         action = menu.exec_(self.mapToGlobal(self.rect().bottomLeft()))
         if action:
-            self.canvas.model.viewportmapper.set_pixel_size(action.size)
+            self.canvas.model.viewportmapper.set_viewport_pixel_size(action.size)
             self.canvas.panzoom_changed.emit()
 
     def enterEvent(self, event):
@@ -52,7 +52,7 @@ class ZoomLabel(QtWidgets.QWidget):
         options = QtWidgets.QStyleOptionToolButton()
         options.initFrom(self)
         options.rect = self.rect()
-        size = self.canvas.model.viewportmapper.get_pixel_size()
+        size = self.canvas.model.viewportmapper.get_viewport_pixel_size()
         options.text = f'{round(size * 100)}%'
         options.features = (
             QtWidgets.QStyleOptionToolButton.HasMenu)

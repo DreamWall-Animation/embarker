@@ -1,8 +1,11 @@
+
 from PySide6 import QtWidgets, QtCore, QtGui
 from paintcanvas.dialog import ColorSelection
 from paintcanvas.qtutils import COLORS
 from paintcanvas.tools import (
-    DrawTool, SmoothDrawTool, ArrowTool, RectangleTool, CircleTool, LineTool)
+    DrawTool, SmoothDrawTool, ArrowTool, RectangleTool, CircleTool, LineTool,
+    EraserTool)
+from paintcanvas.widget import SliderSetValueAtClickPosition
 
 
 class ColorButton(QtWidgets.QAbstractButton):
@@ -46,58 +49,108 @@ class ColorButton(QtWidgets.QAbstractButton):
 
     def set_value(self, color):
         self.color = color
-        self.update
+        self.update()
 
 
-class Size(QtWidgets.QSlider):
+class Slider(QtWidgets.QWidget):
+    MIN = 0
+    MAX = 255
     edited = QtCore.Signal()
-
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setOrientation(QtCore.Qt.Horizontal)
-        self.setMinimum(0)
-        self.setMaximum(1000)
-        self.sliderReleased.connect(self.edited.emit)
+        self.slider = SliderSetValueAtClickPosition()
+        self.slider.setOrientation(QtCore.Qt.Horizontal)
+        self.slider.setMinimum(self.MIN)
+        self.slider.setMaximum(self.MAX)
+        self.slider.valueChanged.connect(self._set_value_from_slider)
+        self.value_edit = QtWidgets.QSpinBox()
+        self.value_edit.setMinimum(self.MIN)
+        self.value_edit.setMaximum(self.MAX)
+        self.value_edit.valueChanged.connect(self._set_value_from_edit)
 
-    def get_value(self):
-        return self.value() / 1000
+        layout = QtWidgets.QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+        layout.addWidget(self.slider)
+        layout.addWidget(self.value_edit)
 
-    def set_value(self, value):
-        self.setValue(value * 1000)
+    def _internal_value_change(self, value):
+        self.set_value(value)
+        self.edited.emit()
 
-
-class Opacity(QtWidgets.QSlider):
-    edited = QtCore.Signal()
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setOrientation(QtCore.Qt.Horizontal)
-        self.setMinimum(0)
-        self.setMaximum(255)
-        self.sliderReleased.connect(self.edited.emit)
-
-    def get_value(self):
-        return self.value()
+    def value(self):
+        return self.slider.value()
 
     def set_value(self, value):
-        self.setValue(value)
+        self.slider.blockSignals(True)
+        self.slider.setValue(value)
+        self.slider.blockSignals(False)
+        self.value_edit.blockSignals(True)
+        self.value_edit.setValue(value)
+        self.value_edit.blockSignals(False)
 
+    def _set_value_from_edit(self, value):
+        self.slider.blockSignals(True)
+        self.slider.setValue(value)
+        self.slider.blockSignals(False)
+        self.edited.emit()
 
-class BufferSize(QtWidgets.QSlider):
-    edited = QtCore.Signal()
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setOrientation(QtCore.Qt.Horizontal)
-        self.setMinimum(0)
-        self.setMaximum(50)
-        self.sliderReleased.connect(self.edited.emit)
+    def _set_value_from_slider(self, value):
+        self.value_edit.blockSignals(True)
+        self.value_edit.setValue(value)
+        self.value_edit.blockSignals(False)
+        self.edited.emit()
 
     def get_value(self):
-        return self.value()
+        return self.slider.value()
+
+
+class BrushSize(Slider):
+    MIN = 1
+    MAX = 100
+
+    def get_value(self):
+        value = self.value()
+        if value <= 50:
+            # Linear interpolation from [1, 50] to [1, 15]
+            output = 1 + ((value - 1) / 49) * 14
+        elif value <= 75:
+            # Linear interpolation from [51, 75] to [16, 40]
+            output = 16 + ((value - 51) / 24) * 24
+        else:
+            # Linear interpolation from [76, 100] to [41, 100]
+            output = 41 + ((value - 76) / 24) * 59
+        # print(value, output)
+        return output
 
     def set_value(self, value):
-        self.setValue(value)
+        self.blockSignals(True)
+        if value <= 15:
+            # Inverse of [1, 50] -> [1, 15]
+            value = 1 + ((value - 1) / 14) * 49
+        elif value <= 40:
+            # Inverse of [51, 75] -> [16, 40]
+            value = 51 + ((value - 16) / 24) * 24
+        else:
+            # Inverse of [76, 100] -> [41, 100]
+            value = 76 + ((value - 41) / 59) * 24
+        super().set_value(value)
+        self.blockSignals(False)
+
+
+class Size(Slider):
+    MIN = 1
+    MAX = 100
+
+
+class Opacity(Slider):
+    MIN = 0
+    MAX = 255
+
+
+class BufferSize(Opacity):
+    MIN = 1
+    MAX = 50
 
 
 class Alignment(QtWidgets.QComboBox):
@@ -153,7 +206,7 @@ SETTINGS_WIDGETS = {
     'text_size': ('Text size', Size),
     'alignment': ('Alignment', Alignment),
     'bgopacity': ('Background opacity', Opacity),
-    'linewidth': ('Line width', Size),
+    'linewidth': ('Line width', BrushSize),
     'tailwidth': ('Tail width', Size),
     'headsize': ('Header size', Size),
     'buffer_lenght': ('Buffer', BufferSize)
@@ -167,17 +220,19 @@ SHAPE_ATTRIBUTES_BY_TYPES = {
     'line': ['color', 'linewidth'],
     'rectangle': ['color', 'bgcolor', 'filled', 'bgopacity', 'linewidth'],
     'stroke': ['color'],
+    'p-stroke': ['color', 'bgopacity'],
     'text': [
         'color', 'bgcolor', 'filled', 'bgopacity',
         'text_size', 'alignment', 'text'],
 }
 TOOL_ATTRIBUTES_BY_TOOL = {
     ArrowTool: ['color', 'headsize', 'linewidth'],
+    EraserTool: ['linewidth'],
     CircleTool: ['color', 'bgcolor', 'filled', 'bgopacity', 'linewidth'],
-    DrawTool: ['color', 'linewidth'],
+    DrawTool: ['color', 'linewidth', 'bgopacity'],
     LineTool: ['color', 'linewidth'],
     RectangleTool: ['color', 'bgcolor', 'filled', 'bgopacity', 'linewidth'],
-    SmoothDrawTool: ['color', 'linewidth', 'buffer_lenght'],
+    SmoothDrawTool: ['color', 'linewidth', 'bgopacity', 'buffer_lenght'],
 }
 
 
@@ -200,7 +255,6 @@ class ToolsSettingWidget(QtWidgets.QWidget):
             widget.setVisible(False)
             widget.init_tool(cls(self.canvas))
             layout.addWidget(widget)
-        layout.addStretch()
 
     def set_tool(self, tool):
         tool_cls = type(tool)
@@ -211,6 +265,15 @@ class ToolsSettingWidget(QtWidgets.QWidget):
             if cls is tool_cls:
                 widget.init_tool(self.canvas.tool)
 
+    def sync_tools(self, tools):
+        for tool in tools:
+            attributes = TOOL_ATTRIBUTES_BY_TOOL.get(tool.__class__)
+            if not attributes:
+                continue
+            widget = self.widgets.get(tool.__class__)
+            if widget:
+                widget.init_tool(tool)
+
     def tool_edited(self):
         for key, value in self.settings().items():
             setattr(self.canvas.tool, key, value)
@@ -219,6 +282,17 @@ class ToolsSettingWidget(QtWidgets.QWidget):
         for widget in self.widgets.values():
             if widget.isVisible():
                 return widget.settings()
+
+    def serialize(self):
+        return {
+            cls.__name__: widget.settings()
+            for cls, widget in self.widgets.items()}
+
+    def deserialize(self, settings):
+        for cls, widget in self.widgets.items():
+            data = settings.get(cls.__name__, {})
+            for attribute, value in data.items():
+                setattr(widget, attribute, value)
 
 
 class ShapeSettingsWidget(QtWidgets.QWidget):
@@ -314,7 +388,7 @@ class ShapeSettings(QtWidgets.QWidget):
 class ToolSettings(ShapeSettings):
 
     def init_tool(self, tool):
-        attributes = TOOL_ATTRIBUTES_BY_TOOL[type(tool)]
+        attributes = TOOL_ATTRIBUTES_BY_TOOL.get(type(tool), [])
         for attribute in attributes:
             value = getattr(tool, attribute)
             self.editors[attribute].set_value(value)

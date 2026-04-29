@@ -2,7 +2,8 @@
 from PySide6 import QtCore
 from PySide6.QtGui import QPainter
 from paintcanvas.shapes import (
-    Stroke, Arrow, Rectangle, Circle, Bitmap, Text, Line, deserialize_shape)
+    PStroke, Stroke, Arrow, Rectangle, Circle, Bitmap, Text, Line,
+    deserialize_shape)
 from paintcanvas.mathutils import distance_qline_qpoint
 
 
@@ -210,14 +211,18 @@ def is_point_hover_element(element, viewport_point, viewportmapper):
     elif isinstance(element, Stroke):
         return is_point_hover_stroke(element, viewport_point, viewportmapper)
 
+    elif isinstance(element, PStroke):
+        return is_point_hover_pstroke(element, viewport_point, viewportmapper)
+
     elif isinstance(element, (Arrow, Line)):
         start = viewportmapper.to_viewport_coords(element.start)
         end = viewportmapper.to_viewport_coords(element.end)
         line = QtCore.QLineF(start, end)
         distance = distance_qline_qpoint(line, viewport_point)
+        pixel = viewportmapper.get_units_pixel_size().width()
         return (
             distance <=
-            viewportmapper.to_viewport(element.linewidth) + THRESHOLD)
+            viewportmapper.to_viewport(element.linewidth * pixel) + THRESHOLD)
 
     elif isinstance(element, Text):
         rect = QtCore.QRectF(element.start, element.end)
@@ -246,6 +251,12 @@ def is_point_hover_element(element, viewport_point, viewportmapper):
     elif isinstance(element, Bitmap):
         rect = viewportmapper.to_viewport_rect(element.rect)
         return rect.contains(viewport_point)
+
+
+def is_point_hover_pstroke(stroke, viewport_point, viewportmapper):
+    path = stroke.create_qpath()
+    point = viewportmapper.to_units_coords(viewport_point)
+    return path.contains(point)
 
 
 def is_point_hover_stroke(stroke, viewport_point, viewportmapper):

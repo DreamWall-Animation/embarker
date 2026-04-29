@@ -32,9 +32,15 @@ class LayerView(QtWidgets.QWidget):
         self.toolbar.addWidget(spacer)
         self.toolbar.addWidget(self.blend_modes)
 
+        scroll = QtWidgets.QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setMinimumHeight(150)
+        scroll.setStyleSheet('background-color: rgba(0, 0, 0, 50);')
+        scroll.setWidget(self.layerstackview)
+
         layout = QtWidgets.QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(self.layerstackview)
+        layout.addWidget(scroll)
         layout.addWidget(self.toolbar)
         layout.addStretch()
         self.sync_view()
@@ -48,15 +54,15 @@ class LayerView(QtWidgets.QWidget):
     def layer_added(self):
         self.canvas.model.add_layer()
         self.layerstackview.update_size()
-        self.layerstackview.repaint()
+        self.layerstackview.update()
 
     def duplicate_layer(self):
         self.canvas.model.duplicate_layer()
         self.layerstackview.update_size()
-        self.layerstackview.repaint()
+        self.layerstackview.update()
 
     def call_edited(self):
-        self.layerstackview.repaint()
+        self.layerstackview.update()
         self.edited.emit()
 
     def change_blend_mode(self):
@@ -69,5 +75,5 @@ class LayerView(QtWidgets.QWidget):
         self.canvas.model.layerstack.delete(index)
         self.canvas.model.add_undo_state()
         self.layerstackview.update_size()
-        self.layerstackview.repaint()
+        self.layerstackview.update()
         self.edited.emit()

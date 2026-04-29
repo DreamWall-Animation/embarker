@@ -1,2 +1,4 @@
 __pycache__
 *.png~
+/*.ps1
+*/ffmpeg

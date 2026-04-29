@@ -2,7 +2,7 @@ import sys
 import math
 from PySide6 import QtCore
 from paintcanvas.shapes import (
-    Bitmap, Text, Rectangle, Circle, Arrow, Stroke, Line)
+    Bitmap, Text, Rectangle, Circle, Arrow, Stroke, PStroke, Line)
 
 
 def get_images_rects(baseimage, stackimages, layout=0):
@@ -92,6 +92,9 @@ def points_rect(points):
 def get_shape_rect(element, viewportmapper):
     if isinstance(element, Stroke):
         points = [p for p, _ in element]
+        return viewportmapper.to_viewport_rect(points_rect(points))
+    elif isinstance(element, PStroke):
+        points = [p for p in element]
         return viewportmapper.to_viewport_rect(points_rect(points))
     elif isinstance(element, (Arrow, Rectangle, Circle, Text, Line)):
         l = min((element.start.x(), element.end.x()))

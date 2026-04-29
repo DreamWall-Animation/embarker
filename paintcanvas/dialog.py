@@ -1,5 +1,6 @@
 from PySide6 import QtWidgets, QtCore, QtGui
 from paintcanvas.qtutils import COLORS
+from paintcanvas.widget import SliderSetValueAtClickPosition
 
 
 class OpacityDialog(QtWidgets.QWidget):
@@ -11,7 +12,7 @@ class OpacityDialog(QtWidgets.QWidget):
         self.layerstack = layerstack
         self.setWindowFlag(QtCore.Qt.FramelessWindowHint)
         self.setWindowFlag(QtCore.Qt.Popup)
-        self.slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+        self.slider = SliderSetValueAtClickPosition(QtCore.Qt.Horizontal)
         self.slider.setMinimum(0)
         self.slider.setMaximum(255)
         self.slider.setValue(layerstack.opacities[index])

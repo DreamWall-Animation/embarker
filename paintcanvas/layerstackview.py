@@ -15,6 +15,7 @@ class LayerStackView(QtWidgets.QWidget):
     def __init__(self, canvas, parent=None):
         super().__init__(parent)
         self.canvas = canvas
+        self.canvas.layer_added.connect(self.update_size)
         self.setMinimumWidth(200)
         self.visibility_pixmap = pixmap('visibility.png')
         self.current_item_pixmap = pixmap('current.png')

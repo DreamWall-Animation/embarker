@@ -1,4 +1,8 @@
 from PySide6 import QtCore
+from paintcanvas.navigator import Navigator
+from paintcanvas.layerstack import LayerStack
+from paintcanvas.selection import Selection
+from viewportmapper import ViewportMapper
 
 
 class BaseTool:
@@ -16,19 +20,19 @@ class BaseTool:
         return self.model.drawcontext
 
     @property
-    def layerstack(self):
+    def layerstack(self) -> LayerStack:
         return self.model.layerstack
 
     @property
-    def navigator(self):
-        return self.model.navigator
+    def navigator(self) -> Navigator:
+        return self.canvas.navigator
 
     @property
-    def selection(self):
+    def selection(self) -> Selection:
         return self.model.selection
 
     @property
-    def viewportmapper(self):
+    def viewportmapper(self) -> ViewportMapper:
         return self.model.viewportmapper
 
     @property
@@ -101,9 +105,6 @@ class NavigationTool(BaseTool):
         self.viewportmapper.zoom_with_pivot(factor, event.position())
         self.canvas.panzoom_changed.emit()
 
-    def mouseReleaseEvent(self, event):
-        return False
-
     def tabletMoveEvent(self, event):
         return self.mouseMoveEvent(event)
 
@@ -120,3 +121,29 @@ class NavigationTool(BaseTool):
             return QtCore.Qt.OpenHandCursor
         if space and left:
             return QtCore.Qt.ClosedHandCursor
+
+
+class NavigationScrubTool(NavigationTool):
+    def __init__(self, canvas):
+        super().__init__(canvas)
+        self.offset = 0
+
+    def mousePressEvent(self, event):
+        self.offset = 0
+        return super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        if super().mouseMoveEvent(event):
+            return
+        if self.navigator.left_pressed:
+            offset = self.navigator.mouse_offset(event.position())
+            if not offset:
+                return
+            self.offset += offset.x()
+            if 2 < self.offset:
+                self.canvas.scrub.emit(1)
+                self.offset = 0
+            elif self.offset < -2:
+                self.canvas.scrub.emit(-1)
+                self.offset = 0
+

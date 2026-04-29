@@ -13,8 +13,8 @@ NDC Mapper to match the following shader:
         vTexCoord = texCoord;
     }
 """
-
-from PySide6.QtCore import QPoint, QPointF, QRectF, QSize
+from PySide6.QtGui import QTransform
+from PySide6.QtCore import QPoint, QPointF, QRectF, QSize, QSizeF
 from viewportmapper.abstract import ViewportMapper
 
 
@@ -27,12 +27,13 @@ class NDCViewportMapper(ViewportMapper):
     """
     def __init__(self, zoom=1.0, origin=None, view_size=None, image_size=None):
 
-        self.zoom: float = zoom
-        self.origin: QPointF = origin or QPointF(0, 0)
+        self._zoom: float = zoom
+        self._origin: QPointF = origin or QPointF(0, 0)
 
         self._view_size: QSize = QSize(1, 1)
         self.view_ratio: float = 1.0
         self._image_size: QSize = QSize(1, 1)
+        self._unit_pixel_size = None
         self.image_ratio: float = 1.0
         self.image_widget_ratio: float = 1.0
         self.snap_to_width: bool = True
@@ -43,7 +44,29 @@ class NDCViewportMapper(ViewportMapper):
         if image_size:
             self.image_size = image_size
 
-    # Setters to cache values asked for every frames:
+        self.to_units_transform: QTransform
+        self.to_viewport_transform: QTransform
+        self.update_transforms()
+
+    # Setters to cache values and QTransforms
+    @property
+    def zoom(self) -> QSize:
+        return self._zoom
+
+    @zoom.setter
+    def zoom(self, zoom: QSize):
+        self._zoom = zoom
+        self.update_transforms()
+
+    @property
+    def origin(self) -> QPointF:
+        return self._origin
+
+    @origin.setter
+    def origin(self, origin: QPointF):
+        self._origin = origin
+        self.update_transforms()
+
     @property
     def image_size(self) -> QSize:
         return self._image_size
@@ -51,8 +74,10 @@ class NDCViewportMapper(ViewportMapper):
     @image_size.setter
     def image_size(self, size: QSize):
         self._image_size = size
+        self._unit_pixel_size = None
         self.image_ratio = size.width() / size.height()
         self.update_image_widget_ratio()
+        self.update_transforms()
 
     @property
     def view_size(self) -> QSize:
@@ -63,6 +88,7 @@ class NDCViewportMapper(ViewportMapper):
         self._view_size = size
         self.view_ratio = size.width() / size.height()
         self.update_image_widget_ratio()
+        self.update_transforms()
 
     def update_image_widget_ratio(self):
         aspect = self.view_ratio / self.image_ratio
@@ -74,14 +100,27 @@ class NDCViewportMapper(ViewportMapper):
             self.view_half = self.view_size.height() / 2
             self.aspect = QPointF(1 / aspect, 1.0)
 
-    def get_pixel_size(self):
+    def get_units_pixel_size(self) -> QSizeF:
+        if self._unit_pixel_size is None:
+            self._unit_pixel_size = QSizeF(
+                2 / self.image_size.width(), -(2 / self.image_size.height()))
+        return self._unit_pixel_size
+
+    def get_pixel_size_ratio(self):
+        size = self.get_units_pixel_size()
+        top = max(size.toTuple())
+        if top == 0:
+            return QSizeF(1, -1)
+        return QSizeF(size.width() / top, -(size.height() / top))
+
+    def get_viewport_pixel_size(self):
         vs = self.view_size
         if self.snap_to_width:
             return vs.width() / self.image_size.width() * self.zoom
         else:
             return vs.height() / self.image_size.height() * self.zoom
 
-    def set_pixel_size(self, size):
+    def set_viewport_pixel_size(self, size):
         vs = self.view_size
         if self.snap_to_width:
             self.zoom = self.image_size.width() / vs.width() * size
@@ -207,6 +246,58 @@ class NDCViewportMapper(ViewportMapper):
         self.zoom = max(self.zoom, .1)
         self.origin = units_rect.center()
 
+    def update_transforms(self):
+        self._generate_to_units_transform()
+        self._generate_to_viewport_transform()
+
+    def _generate_to_viewport_transform(self):
+        # Zoom
+        t_zoom = QTransform.fromScale(
+            self.zoom * self.aspect.x(),
+            self.zoom * self.aspect.y())
+        # Move origin
+        t_origin = QTransform.fromTranslate(*self.origin.toTuple())
+        # Move to [0, 2]
+        t_offset = QTransform.fromTranslate(1, 1)
+        # Scale to view size
+        t_scale = QTransform.fromScale(
+            self.view_size.width() / 2,
+            self.view_size.height() / 2)
+        # Flip Y
+        t_flip = QTransform.fromScale(1, -1)
+        t_flip.translate(0, -self.view_size.height())
+        # combine
+        self.to_viewport_transform = (
+            t_zoom * t_origin * t_offset * t_scale * t_flip)
+
+    def _generate_to_units_transform(self):
+        """
+        Returns a QTransform mapping from viewport (pixel) coordinates
+        to unit coordinates (shader space).
+        """
+        # Flip Y
+        t_flip = QTransform.fromScale(1, -1)
+        t_flip.translate(0, -self.view_size.height())
+        # Normalize to [0, 2]
+        t_scale = QTransform.fromScale(
+            2 / self.view_size.width(),
+            2 / self.view_size.height())
+        # Move to [-1, 1]
+        t_offset = QTransform.fromTranslate(-1, -1)
+        # Move origin
+        t_origin = QTransform.fromTranslate(*(-self.origin).toTuple())
+        # Zoom
+        t_zoom = QTransform.fromScale(1 / self.zoom, 1 / self.zoom)
+        # combine
+        self.to_units_transform = (
+            t_flip * t_scale * t_offset * t_origin * t_zoom)
+
+    def to_viewport_path(self, path):
+        return self.to_viewport_transform.map(path)
+
+    def to_units_path(self, path):
+        return self.to_units_transform.map(path)
+
 
 if __name__ == '__main__':
     vm = NDCViewportMapper()
@@ -214,19 +305,23 @@ if __name__ == '__main__':
     vm.image_size = QSize(800, 400)
 
     assert vm.origin.x() == 0
-    assert vm.get_pixel_size() == 0.5
+    assert vm.get_viewport_pixel_size() == 0.5
 
     assert vm.to_viewport(1) == 200
     assert vm.to_units(400) == 2
 
     assert vm.to_units_coords(QPoint(200, 200)) == QPointF(0, 0)
     assert vm.to_units_coords(QPointF(0, 100)) == QPointF(-1, 1)
+    assert vm.to_units_transform.map(QPoint(200, 200)) == QPointF(0, 0)
+    assert vm.to_units_transform.map(QPoint(0, 100)) == QPointF(-1, 1)
 
     assert vm.to_viewport_coords(QPointF(0, 0)) == QPointF(200, 200)
     assert vm.to_viewport_coords(QPointF(-1, -1)) == QPointF(0, 300)
+    assert vm.to_viewport_transform.map(QPointF(0, 0)) == QPointF(200, 200)
+    assert vm.to_viewport_transform.map(QPointF(-1, -1)) == QPointF(0, 300)
 
-    vm.set_pixel_size(1)
-    assert vm.get_pixel_size() == 1
+    vm.set_viewport_pixel_size(1)
+    assert vm.get_viewport_pixel_size() == 1
 
     # Change origin (-1;-1 = left;bottom)
     vm.zoom = 1
@@ -247,3 +342,5 @@ if __name__ == '__main__':
     vm.zoom = .5
     assert vm.to_units_coords(QPointF(400, 400)) == QPointF(0, 0)
     assert vm.to_units_coords(QPointF(200, 200)) == QPointF(-2, 4)
+
+    vm.origin = QPointF(0.5, 0.5)
