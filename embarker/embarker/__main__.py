@@ -63,6 +63,7 @@ parser.add_argument(
 parser.add_argument(
     '-osn', '--os_native_style', default=False, action='store_true')
 parser.add_argument('-d', '--debug', default=False, action='store_true')
+parser.add_argument('-c', '--command_verbosity', default=False, action='store_true')
 parser.add_argument(
     '-env', '--environment_files', nargs='+',
     help='List additional environment files (.env)')
@@ -140,6 +141,10 @@ if args.filepaths:
 
 if args.debug:
     os.environ['EMBARKER_DEBUG'] = '1'
+
+
+if args.command_verbosity:
+    os.environ['EMBARKER_COMMANDS_VERBOSITY'] = '1'
 
 
 if args.playlist_file:

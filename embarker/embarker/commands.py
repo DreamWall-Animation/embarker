@@ -31,7 +31,7 @@ def catch_error(func):
 
 def log_debug_command(func):
     def wrap(*args, **kwargs):
-        if os.getenv('EMBARKER_DEBUG'):
+        if os.getenv('EMBARKER_COMMANDS_VERBOSITY'):
             now = datetime.datetime.now()
             f = f'{func.__name__}({args}, {kwargs})'
             print(f'[COMMAND]: {now:%H:%M:%S} -> {f}')
