@@ -48,8 +48,11 @@ def delete(key):
 
 
 def import_preferences(filepath):
-    prefs = _preferences[0].get_all()
-    prefs.import_(filepath)
+    _preferences[0].import_(filepath)
+
+
+def export_preferences(filepath):
+    _preferences[0].export(filepath)
 
 
 def delete_all():

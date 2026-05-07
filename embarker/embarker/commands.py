@@ -260,7 +260,7 @@ def export_preferences():
         return
     get_main_window().save_states()
     get_main_window().save_tools_states()
-    preferences.export(filepath)
+    preferences.export_preferences(filepath)
 
 
 @catch_error
