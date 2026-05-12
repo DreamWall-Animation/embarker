@@ -48,7 +48,7 @@ FROZEN = getattr(sys, 'frozen', False)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('filepaths', nargs='*', help='List of videos file paths',)
-parser.add_argument('-pp', '--python_plugins', nargs='+', help='List python plugin script')
+parser.add_argument('-pp', '--python_plugins', nargs='+', help='List python plugin module')
 parser.add_argument('-pl', '--playlist_file', help='Playlist filepath')
 parser.add_argument('-s', '--session_file', help='Session filepath')
 doc = """\
