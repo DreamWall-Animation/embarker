@@ -41,6 +41,13 @@ class Session:
             (container.id, relative_frame),
             CanvasModel(viewportmapper) if viewportmapper else None)
 
+    def get_annotation_index(self, frame: int) -> tuple[str, int]:
+        """
+        Return (container.id, relative_frame) from session frame
+        """
+        container = self.playlist.frames_containers[frame]
+        return container.id, self.playlist.frames_frames[frame]
+
     def get_container_annotations(
             self, container_id,
             include_empty_current_frame=False,

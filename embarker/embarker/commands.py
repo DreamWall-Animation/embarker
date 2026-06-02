@@ -73,6 +73,23 @@ def get_action(action_id):
 
 @catch_error
 @log_debug_command
+def create_annotation(frame=None, comment=None, metadata=None):
+    frame = frame if frame is not None else get_frame()
+    viewportmapper = get_main_window().viewportmapper
+    annotation = CanvasModel(viewportmapper)
+    annotation.comment = comment or ''
+    annotation.metadata = metadata or {}
+    session = get_session()
+    relative_frame = session.playlist.frames_frames[frame]
+    container = session.playlist.frames_containers[frame]
+    session.annotations[(container.id, relative_frame)] = annotation
+    get_main_window().current_frame_changed()
+    get_main_window().drawed()
+    return annotation
+
+
+@catch_error
+@log_debug_command
 def new_session():
     """
     Reset application state and start a clean new session.

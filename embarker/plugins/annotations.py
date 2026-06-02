@@ -197,8 +197,9 @@ class AnnotationsListModel(QtCore.QAbstractTableModel):
         if not index.isValid():
             return
 
-        container = ebc.get_session().get_current_container()
-        annotations = ebc.get_session().get_container_annotations(container.id, True)
+        session = ebc.get_session()
+        container = session.get_current_container()
+        annotations = session.get_container_annotations(container.id, True)
         container_id, relative_frame = sorted(annotations)[index.row()]
 
         if role == QtCore.Qt.UserRole:
@@ -208,7 +209,7 @@ class AnnotationsListModel(QtCore.QAbstractTableModel):
             if index.column() != 0:
                 return
             id_ = (container_id, relative_frame)
-            model = ebc.get_session().annotations.get(id_)
+            model = session.annotations.get(id_)
             if model is None:
                 return QtCore.Qt.Unchecked
             return (
@@ -220,7 +221,7 @@ class AnnotationsListModel(QtCore.QAbstractTableModel):
                 return str(relative_frame)
             if index.column() == 2:
                 id_ = (container_id, relative_frame)
-                model = ebc.get_session().annotations.get(id_)
+                model = session.annotations.get(id_)
                 if model is None:
                     return '(no text)'
                 return model.comment or '(no text)'

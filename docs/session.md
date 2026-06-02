@@ -42,6 +42,7 @@ Free dictionnary to store custom user data.
 | `None` | [`clear_empty_annotations`](#clear_empty_annotations) | - |
 | `None` | [`delete_annotation_at`](#delete_annotation_at) | `frame: int` |
 | `CanvasModel | None` | [`get_annotation_at`](#get_annotation_at) | `frame: int, viewportmapper: NDCViewportMapper = None` |
+| `tuple[str, int]` | [`get_annotation_index`](#get_annotated_frames) | - |
 | `list[int]` | [`get_annotated_frames`](#get_annotated_frames) | - |
 | `VideoContainer | ImageSequenceContainer` | [`get_container`](#get_container) | `container_id` |
 | `dict` | [`get_container_annotations`](#get_container_annotations) | `container_id, include_empty_current_frame=False, exportable_only=False` |
@@ -75,6 +76,9 @@ Deletes the `CanvasModel` and removes any associated image override at the speci
 
 ### `get_annotation_at`
 Returns the `CanvasModel` located at the absolute timeline frame. If no annotation exists at that position, it returns a new `CanvasModel` (if a `viewportmapper` is provided).
+
+### `get_annotation_index`
+Return (container.id, relative_frame) from session frame
 
 ### `get_annotated_frames`
 Returns a sorted list of all absolute frames across the entire timeline that currently contain an annotation.
