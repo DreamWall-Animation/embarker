@@ -56,9 +56,9 @@ class CanvasModel:
         self.add_undo_state()
 
     def copy(self):
-        model = self.deserialize(deepcopy(self.serialize()))
-        model.viewportmapper = self.viewportmapper
-        return
+        model = CanvasModel(self.viewportmapper, self.baseimage)
+        model.deserialize(self.serialize())
+        return model
 
     def merge(self, canvas_model):
         models = self, canvas_model

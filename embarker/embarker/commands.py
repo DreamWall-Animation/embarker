@@ -84,7 +84,7 @@ def create_annotation(frame=None, comment=None, metadata=None):
     container = session.playlist.frames_containers[frame]
     if session.annotations.get((container.id, relative_frame)) is not None:
         return session.annotations.get((container.id, relative_frame))
-    session.annotations[(container.id, relative_frame)] = annotation
+    session.add_annotation_at(frame, annotation)
     get_main_window().current_frame_changed()
     get_main_window().drawed()
     return annotation
