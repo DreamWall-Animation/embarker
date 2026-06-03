@@ -1,5 +1,6 @@
 import os
 import uuid
+from copy import deepcopy
 from collections import defaultdict
 from PySide6 import QtGui, QtCore
 
@@ -53,6 +54,16 @@ class CanvasModel:
         self.undostack = []
         self.redostack = []
         self.add_undo_state()
+
+    def copy(self):
+        model = self.deserialize(deepcopy(self.serialize()))
+        model.viewportmapper = self.viewportmapper
+        return
+
+    def merge(self, canvas_model):
+        models = self, canvas_model
+        self.comment = '|'.join(c.comment for c in models if c.comment)
+        self.layerstack.merge(canvas_model.copy().layerstack)
 
     def copy_selection(self):
         if self.selection.type == Selection.ELEMENT:

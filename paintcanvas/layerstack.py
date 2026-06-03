@@ -51,6 +51,14 @@ class LayerStack:
 
         self.current_index = None
 
+    def merge(self, layerstack):
+        self.layers.extend(layerstack.layers)
+        self.locks.extend(layerstack.locks)
+        self.names.extend(layerstack.names)
+        self.opacities.extend(layerstack.opacities)
+        self.blend_modes.extend(layerstack.blend_modes)
+        self.visibilities.extend(layerstack.visibilities)
+
     def serialize(self):
         return {
             'type': 'layerstack',
