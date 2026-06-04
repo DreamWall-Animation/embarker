@@ -370,6 +370,7 @@ class EmbarkerMainWindow(QtWidgets.QMainWindow):
         tools.addActions(self.actionregistry.list_category_actions('Tool'))
         self.menuBar().addMenu(tools)
 
+
         preferences = QtWidgets.QMenu('&Preferences')
         preferences.addAction(
             self.actionregistry.get('DisplayShortcutManager'))

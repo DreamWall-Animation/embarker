@@ -188,7 +188,7 @@ class TimelineSlider(QtWidgets.QWidget):
                 self.origin_frame = frame
                 self.moving_model = session.annotations[index]
                 del session.annotations[index]
-                
+
             elif shift_pressed():
                 # Duplicate Annotation
                 self.moving_model = session.annotations[index].copy()
@@ -212,15 +212,15 @@ class TimelineSlider(QtWidgets.QWidget):
         session = ebc.get_session()
         frame = self.get_frame_from_point(event.position().toPoint())
         annoted_frames = ebc.get_session().get_annotated_frames()
-        bracket_frame: bool = frame in [session.playlist.playback_start, 
+        bracket_frame: bool = frame in [session.playlist.playback_start,
                        session.playlist.playback_end]
 
         if frame in annoted_frames and (ctrl_pressed() or shift_pressed()):
             QtWidgets.QApplication.setOverrideCursor(
                 QtCore.Qt.CursorShape.SizeHorCursor)
-        elif bracket_frame and not ctrl_pressed() and not shift_pressed():  
+        elif bracket_frame and not ctrl_pressed() and not shift_pressed():
             QtWidgets.QApplication.setOverrideCursor(
-                QtCore.Qt.CursorShape.SizeHorCursor)  
+                QtCore.Qt.CursorShape.SizeHorCursor)
         else :
             QtWidgets.QApplication.restoreOverrideCursor()
 
@@ -236,7 +236,7 @@ class TimelineSlider(QtWidgets.QWidget):
 
         if self._mmb_pressed:
             self.set_value_from_point(event.position().toPoint())
-            self.update_playback_range_from_point(event.position().toPoint())    
+            self.update_playback_range_from_point(event.position().toPoint())
 
         self.update()
 
@@ -265,9 +265,9 @@ class TimelineSlider(QtWidgets.QWidget):
                 if dialog.result == 2:
                     self.override(event.position().toPoint())
 
-            ebc.set_frame(frame)    
+            ebc.set_frame(frame)
             self.moving_model = None
-        
+
         if event.button() == QtCore.Qt.MiddleButton:
             self._mmb_pressed = False
         if event.button() == QtCore.Qt.RightButton:
@@ -311,7 +311,7 @@ class TimelineSlider(QtWidgets.QWidget):
                 play_start=ebc.get_session().playlist.playback_start,
                 play_end=ebc.get_session().playlist.playback_end,
                 separators=list(ebc.get_session().playlist.first_frames.values()))
-            
+
         except Exception:
             import traceback
             print(traceback.format_exc())
@@ -355,14 +355,14 @@ class TimelineSlider(QtWidgets.QWidget):
         frame = self.get_frame_from_point(point)
         index = ebc.get_session().get_annotation_index(frame)
         ebc.get_session().annotations[index] = self.moving_model
-        return self.moving_model 
+        return self.moving_model
 
     def cancel(self):
         index = ebc.get_session().get_annotation_index(self.origin_frame)
         ebc.get_session().annotations[index] = self.moving_model
         ebc.set_frame(self.origin_frame)
         del self.origin_frame
-        return self.moving_model 
+        return self.moving_model
 
 
 class MergeAnnotations(QtWidgets.QDialog) :
@@ -381,7 +381,7 @@ class MergeAnnotations(QtWidgets.QDialog) :
         button_layout.addWidget(self.merge_button)
         button_layout.addWidget(self.override_button)
         button_layout.addWidget(self.cancel_button)
-        
+
         self.cancel_button.clicked.connect(partial(self.set_result, 0))
         self.merge_button.clicked.connect(partial(self.set_result, 1))
         self.override_button.clicked.connect(partial(self.set_result, 2))

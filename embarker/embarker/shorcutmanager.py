@@ -307,14 +307,14 @@ class KeyField(QtWidgets.QLineEdit):
         super(KeyField, self).__init__(parent)
 
     def keyPressEvent(self, event):
-        excluded_keys = [QtCore.Qt.Key_Shift, QtCore.Qt.Key_Control, 
+        excluded_keys = [QtCore.Qt.Key_Shift, QtCore.Qt.Key_Control,
                          QtCore.Qt.Key_Alt]
         if event.key() in excluded_keys:
             return
-        
+
         text = QtGui.QKeySequence(event.key()).toString()
         if text == self.text():
             return
-        
+
         self.setText(text)
         self.changed.emit()
