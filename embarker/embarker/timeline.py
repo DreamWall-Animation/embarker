@@ -1,6 +1,9 @@
-from functools import lru_cache
+
+from functools import lru_cache, partial
+
 from PySide6 import QtGui, QtCore, QtWidgets
 from PySide6.QtCore import Qt
+
 import embarker.commands as ebc
 
 
@@ -139,11 +142,16 @@ class TimelineSlider(QtWidgets.QWidget):
         super().__init__(parent)
         self._mlb_pressed = False
         self._mmb_pressed = False
+        self.move_start_bracket = False
+        self.move_end_bracket = False
+        self.moving_model = None
 
         self.setSizePolicy(
             QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        self.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)
         self.setFixedHeight(SLIDER_HEIGHT)
         self.handeling_range = None
+        self.setMouseTracking(True)
 
     @property
     def value(self):
@@ -161,55 +169,105 @@ class TimelineSlider(QtWidgets.QWidget):
         menu.addAction(ebc.get_action('DeleteCurrentAnnotation'))
         menu.exec(point)
 
+    def leftClicEvent(self, event):
+        session = ebc.get_session()
+        self._mlb_pressed = True
+        frame = self.get_frame_from_point(event.position().toPoint())
+
+        # Move brackets
+        if not ctrl_pressed() and not shift_pressed():
+            if frame == session.playlist.playback_start:
+                self.move_start_bracket = True
+            if frame == session.playlist.playback_end:
+                self.move_end_bracket = True
+
+        elif frame in session.get_annotated_frames():
+            index = session.get_annotation_index(frame)
+            if ctrl_pressed() and not shift_pressed():
+                # Move Annotation
+                self.origin_frame = frame
+                self.moving_model = session.annotations[index]
+                del session.annotations[index]
+                
+            elif shift_pressed():
+                # Duplicate Annotation
+                self.moving_model = session.annotations[index].copy()
+
+        self.set_value_from_point(event.position().toPoint())
+
     def mousePressEvent(self, event):
         self.setFocus(QtCore.Qt.MouseFocusReason)
         if not self.maximum:
             return
         if event.button() == QtCore.Qt.LeftButton:
-            self._mlb_pressed = True
-            self.set_value_from_point(event.position().toPoint())
+            self.leftClicEvent(event)
+
         if event.button() == QtCore.Qt.MiddleButton:
             self._mmb_pressed = True
             value = int(event.pos().x() / self.width() * self.count())
             ebc.set_playback_range(value, value + 1)
         self.update()
 
-    def update_playback_range_from_point(self, point):
-        value = int(point.x() / self.width() * self.count())
-        if ebc.get_session().playlist.playback_start is None:
-            ebc.set_playback_range(value, value + 1)
-            self.update()
-            return
-
-        values = (
-            value,
-            ebc.get_session().playlist.playback_start,
-            ebc.get_session().playlist.playback_end)
-        ebc.set_playback_range(min(values), max(values))
-        self.update()
-
     def mouseMoveEvent(self, event):
+        session = ebc.get_session()
+        frame = self.get_frame_from_point(event.position().toPoint())
+        annoted_frames = ebc.get_session().get_annotated_frames()
+        bracket_frame: bool = frame in [session.playlist.playback_start, 
+                       session.playlist.playback_end]
+
+        if frame in annoted_frames and (ctrl_pressed() or shift_pressed()):
+            QtWidgets.QApplication.setOverrideCursor(
+                QtCore.Qt.CursorShape.SizeHorCursor)
+        elif bracket_frame and not ctrl_pressed() and not shift_pressed():  
+            QtWidgets.QApplication.setOverrideCursor(
+                QtCore.Qt.CursorShape.SizeHorCursor)  
+        else :
+            QtWidgets.QApplication.restoreOverrideCursor()
+
         if not self.maximum:
             return
-        if self._mlb_pressed is True:
+        if self._mlb_pressed:
+            point = event.position().toPoint()
+            self.set_value_from_point(point)
+            if self.move_start_bracket :
+                ebc.set_playback_start(frame)
+            elif self.move_end_bracket :
+                ebc.set_playback_end(frame)
+
+        if self._mmb_pressed:
             self.set_value_from_point(event.position().toPoint())
-        if self._mmb_pressed is True:
-            self.set_value_from_point(event.position().toPoint())
-            self.update_playback_range_from_point(event.position().toPoint())
+            self.update_playback_range_from_point(event.position().toPoint())    
+
         self.update()
-
-    def set_value_from_point(self, point):
-        value = int(point.x() / self.width() * self.count())
-        frame = max(0, min(self.maximum, value))
-        if frame != ebc.get_session().playlist.frame:
-            ebc.set_frame(frame)
-
-    def count(self):
-        return self.maximum + 1
 
     def mouseReleaseEvent(self, event):
         if event.button() == QtCore.Qt.LeftButton:
-            self._mlb_pressed = False
+            self._mlb_pressed = self.move_start_bracket = self.move_end_bracket = False
+            frame = self.get_frame_from_point(event.position().toPoint())
+            if not self.moving_model:
+                self.mouse_released.emit()
+                return
+            if frame not in ebc.get_session().get_annotated_frames():
+                idx = ebc.get_session().get_annotation_index(frame)
+                ebc.get_session().annotations[idx] = self.moving_model
+                self.update()
+                self.set_value_from_point(event.position().toPoint())
+
+            else:
+                dialog = MergeAnnotations()
+                dialog.exec_()
+                if dialog.result == 0 or dialog.rejected:
+                    self.cancel()
+
+                if dialog.result == 1:
+                    self.merge(event.position().toPoint())
+
+                if dialog.result == 2:
+                    self.override(event.position().toPoint())
+
+            ebc.set_frame(frame)    
+            self.moving_model = None
+        
         if event.button() == QtCore.Qt.MiddleButton:
             self._mmb_pressed = False
         if event.button() == QtCore.Qt.RightButton:
@@ -238,21 +296,105 @@ class TimelineSlider(QtWidgets.QWidget):
     def paintEvent(self, _):
         painter = QtGui.QPainter(self)
         try:
+            # Will maybe change this so we have annotation in the canvas
+            marked_frames = ebc.get_session().get_annotated_frames()
+            if self.moving_model :
+                marked_frames.append(ebc.get_session().playlist.frame)
+
             drawslider(
                 painter=painter,
                 full_rect=self.rect(),
                 count=self.count(),
                 current=self.value,
                 highlighted_values=ebc.get_session().playlist.frames_images.keys(),
-                marked_values=ebc.get_session().get_annotated_frames(),
+                marked_values=marked_frames,
                 play_start=ebc.get_session().playlist.playback_start,
                 play_end=ebc.get_session().playlist.playback_end,
                 separators=list(ebc.get_session().playlist.first_frames.values()))
+            
         except Exception:
             import traceback
             print(traceback.format_exc())
         finally:
             painter.end()
+
+    def update_playback_range_from_point(self, point):
+        value = int(point.x() / self.width() * self.count())
+        if ebc.get_session().playlist.playback_start is None:
+            ebc.set_playback_range(value, value + 1)
+            self.update()
+            return
+
+        values = (
+            value,
+            ebc.get_session().playlist.playback_start,
+            ebc.get_session().playlist.playback_end)
+        ebc.set_playback_range(min(values), max(values))
+        self.update()
+
+    def set_value_from_point(self, point):
+        value = int(point.x() / self.width() * self.count())
+        frame = max(0, min(self.maximum, value))
+        if frame != ebc.get_frame():
+            ebc.set_frame(frame)
+
+    def get_frame_from_point(self, point) :
+        value =  int(point.x() / self.width() * self.count())
+        return max(0, min(self.maximum, value))
+
+    def count(self):
+        return self.maximum + 1
+
+    def merge(self, point):
+        frame = self.get_frame_from_point(point)
+        target = ebc.get_session().get_annotation_at(frame)
+        target.merge(self.moving_model)
+        return self.moving_model
+
+    def override(self, point):
+        frame = self.get_frame_from_point(point)
+        index = ebc.get_session().get_annotation_index(frame)
+        ebc.get_session().annotations[index] = self.moving_model
+        return self.moving_model 
+
+    def cancel(self):
+        index = ebc.get_session().get_annotation_index(self.origin_frame)
+        ebc.get_session().annotations[index] = self.moving_model
+        ebc.set_frame(self.origin_frame)
+        del self.origin_frame
+        return self.moving_model 
+
+
+class MergeAnnotations(QtWidgets.QDialog) :
+    def __init__(self, parent=None) :
+        super().__init__(parent)
+        self.setWindowTitle('Conflicting Annotations')
+        self.resize(250, 100)
+        label = QtWidgets.QLabel('There already exists an annotation on this frame.')
+        self.merge_button = QtWidgets.QPushButton('Merge')
+        self.override_button = QtWidgets.QPushButton('Override')
+        self.cancel_button = QtWidgets.QPushButton('Cancel')
+        layout = QtWidgets.QVBoxLayout()
+        self.result = None
+
+        button_layout = QtWidgets.QHBoxLayout()
+        button_layout.addWidget(self.merge_button)
+        button_layout.addWidget(self.override_button)
+        button_layout.addWidget(self.cancel_button)
+        
+        self.cancel_button.clicked.connect(partial(self.set_result, 0))
+        self.merge_button.clicked.connect(partial(self.set_result, 1))
+        self.override_button.clicked.connect(partial(self.set_result, 2))
+
+        layout.addWidget(label)
+        layout.addLayout(button_layout)
+
+        self.setLayout(layout)
+        self.show()
+
+    def set_result(self, result):
+        self.result = result
+        self.accept()
 
 
 def draw_slider_brackets(
@@ -341,6 +483,7 @@ def drawslider(
     draw_slider_brackets(
         painter, full_rect, play_start, play_end, count, frame_width)
 
+
 def draw_expanded_slider(
         painter: QtGui.QPainter,
         frame_width: int,
@@ -417,3 +560,18 @@ def get_marker_position(value, max_value, width, thickness, center=False):
         width -= thickness
         offset = thickness / 2
     return int((value / max_value) * (width - thickness)) + offset
+
+
+def ctrl_pressed():
+    modifiers = QtWidgets.QApplication.keyboardModifiers()
+    return modifiers == (modifiers | QtCore.Qt.ControlModifier)
+
+
+def shift_pressed():
+    modifiers = QtWidgets.QApplication.keyboardModifiers()
+    return modifiers == (modifiers | QtCore.Qt.ShiftModifier)
+
+
+def alt_pressed():
+    modifiers = QtWidgets.QApplication.keyboardModifiers()
+    return modifiers == (modifiers | QtCore.Qt.AltModifier)
