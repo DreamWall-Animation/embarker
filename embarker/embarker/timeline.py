@@ -136,7 +136,6 @@ class PlaybackOptionsWidget(QtWidgets.QWidget):
 
 
 class TimelineSlider(QtWidgets.QWidget):
-    mouse_released = QtCore.Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -145,6 +144,7 @@ class TimelineSlider(QtWidgets.QWidget):
         self.move_start_bracket = False
         self.move_end_bracket = False
         self.moving_model = None
+        self.origin_frame = None
 
         self.setSizePolicy(
             QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
@@ -241,38 +241,51 @@ class TimelineSlider(QtWidgets.QWidget):
         self.update()
 
     def mouseReleaseEvent(self, event):
-        if event.button() == QtCore.Qt.LeftButton:
-            self._mlb_pressed = self.move_start_bracket = self.move_end_bracket = False
-            frame = self.get_frame_from_point(event.position().toPoint())
-            if not self.moving_model:
-                self.mouse_released.emit()
-                return
-            if frame not in ebc.get_session().get_annotated_frames():
-                idx = ebc.get_session().get_annotation_index(frame)
-                ebc.get_session().annotations[idx] = self.moving_model
-                self.update()
-                self.set_value_from_point(event.position().toPoint())
-
-            else:
-                dialog = MergeAnnotations()
-                dialog.exec_()
-                if dialog.result == 0 or dialog.rejected:
-                    self.cancel()
-
-                if dialog.result == 1:
-                    self.merge(event.position().toPoint())
-
-                if dialog.result == 2:
-                    self.override(event.position().toPoint())
-
-            ebc.set_frame(frame)
-            self.moving_model = None
 
         if event.button() == QtCore.Qt.MiddleButton:
             self._mmb_pressed = False
+
         if event.button() == QtCore.Qt.RightButton:
             self.exec_context_menu(self.mapToGlobal(event.pos()))
-        self.mouse_released.emit()
+
+        if event.button() != QtCore.Qt.LeftButton:
+            return
+
+        self._mlb_pressed = False
+        self.move_start_bracket = False
+        self.move_end_bracket = False
+
+        if not self.moving_model:
+            self.origin_frame = None
+            return
+
+        frame = self.get_frame_from_point(event.position().toPoint())
+
+        if frame not in ebc.get_session().get_annotated_frames():
+            idx = ebc.get_session().get_annotation_index(frame)
+            ebc.get_session().annotations[idx] = self.moving_model
+            self.update()
+            self.set_value_from_point(event.position().toPoint())
+            ebc.set_frame(frame)
+            self.moving_model = None
+            self.origin_frame = None
+            return
+
+        dialog = MergeAnnotations()
+        dialog.exec_()
+        if dialog.result == 0:
+            self.cancel()
+
+        if dialog.result == 1:
+            self.merge(event.position().toPoint())
+
+        if dialog.result == 2:
+            self.override(event.position().toPoint())
+
+        ebc.set_frame(frame)
+        self.moving_model = None
+        self.origin_frame = None
+
 
     def mouseDoubleClickEvent(self, event):
         if event.button() != QtCore.Qt.LeftButton:
@@ -349,20 +362,17 @@ class TimelineSlider(QtWidgets.QWidget):
         frame = self.get_frame_from_point(point)
         target = ebc.get_session().get_annotation_at(frame)
         target.merge(self.moving_model)
-        return self.moving_model
 
     def override(self, point):
         frame = self.get_frame_from_point(point)
         index = ebc.get_session().get_annotation_index(frame)
         ebc.get_session().annotations[index] = self.moving_model
-        return self.moving_model
 
     def cancel(self):
+        if self.origin_frame is None:
+            return
         index = ebc.get_session().get_annotation_index(self.origin_frame)
         ebc.get_session().annotations[index] = self.moving_model
-        ebc.set_frame(self.origin_frame)
-        del self.origin_frame
-        return self.moving_model
 
 
 class MergeAnnotations(QtWidgets.QDialog) :
@@ -375,7 +385,7 @@ class MergeAnnotations(QtWidgets.QDialog) :
         self.override_button = QtWidgets.QPushButton('Override')
         self.cancel_button = QtWidgets.QPushButton('Cancel')
         layout = QtWidgets.QVBoxLayout()
-        self.result = None
+        self.result = 0
 
         button_layout = QtWidgets.QHBoxLayout()
         button_layout.addWidget(self.merge_button)
