@@ -29,8 +29,6 @@ from embarker.timeline import TimeLineWidget, TimelineSlider
 
 WINDOW_TITLE = 'Embarker'
 
-from PySide6 import QtWidgets
-
 
 class EmbarkerMainWindow(QtWidgets.QMainWindow):
     def __init__(self):
@@ -67,7 +65,7 @@ class EmbarkerMainWindow(QtWidgets.QMainWindow):
         self.canvas.scrub.connect(self.scrub)
         self.canvas.panzoom_changed.connect(self.media_player.update)
         self.canvas.size_changed.connect(self.media_player.update)
-        self.canvas.updated.connect(self.drawed)
+        self.canvas.updated.connect(self.drawn)
 
         self.shapesettings = self.canvas.get_shape_settings_widget()
         self.shapesettings.setSizePolicy(
@@ -497,7 +495,7 @@ class EmbarkerMainWindow(QtWidgets.QMainWindow):
         else:
             self.showNormal()
 
-    def drawed(self):
+    def drawn(self):
         self.timeline.update()
         self.session.add_annotation_at(
             self.session.playlist.frame, self.canvas.model)

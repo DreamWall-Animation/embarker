@@ -86,7 +86,7 @@ def create_annotation(frame=None, comment=None, metadata=None):
         return session.annotations.get((container.id, relative_frame))
     session.add_annotation_at(frame, annotation)
     get_main_window().current_frame_changed()
-    get_main_window().drawed()
+    get_main_window().drawn()
     return annotation
 
 
@@ -135,7 +135,7 @@ def open_session_data(data):
     set_frame(0)
     get_session().metadata = data.get('metadata', {})
     get_main_window().canvas.reset()
-    get_main_window().drawed()
+    get_main_window().drawn()
     get_main_window().autosave.restart_timer()
 
     callback.perform(callback.AFTER_OPEN_SESSION)
@@ -196,7 +196,7 @@ def open_session(filepath=None, as_new_file=False):
     get_session().metadata = data.get('metadata', {})
     get_main_window().update_title()
     get_main_window().canvas.reset()
-    get_main_window().drawed()
+    get_main_window().drawn()
     get_main_window().autosave.restart_timer()
     set_recent_session_file(filepath)
 
@@ -762,7 +762,7 @@ def set_recent_session_file(filepath):
 
 def set_canvas_comment(comment):
     get_main_window().canvas.model.comment = comment
-    get_main_window().drawed()
+    get_main_window().drawn()
 
 
 def _check_session_videos_paths(video_paths, session_folder):
