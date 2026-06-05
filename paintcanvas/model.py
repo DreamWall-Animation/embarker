@@ -249,7 +249,7 @@ class CanvasModel:
             'wash_opacity': self.wash_opacity,
             'comment': self.comment,
             'layerstack': self.layerstack.serialize(),
-            'metadata': self.metadata
+            'metadata': deepcopy(self.metadata)
         }
 
     def deserialize(self, data):
