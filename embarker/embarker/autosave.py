@@ -2,6 +2,7 @@ import os
 import msgpack
 import platform
 from PySide6 import QtCore
+from embarker import preferences
 import embarker.commands as ebc
 
 
@@ -15,7 +16,8 @@ class AutoSave(QtCore.QObject):
         self.schedule_auto_save = False
 
     def start(self):
-        self.timer.start(300000, self)  # Every 5 minutes
+        self.timer.start(int(preferences.get('autosave_timer'))
+            if preferences.get('autosave_timer') else 30000, self)
 
     def restart_timer(self):
         self.timer.stop()
@@ -31,13 +33,15 @@ class AutoSave(QtCore.QObject):
         self.auto_save()
 
     def auto_save(self):
-        if ebc.get_session().filepath is None:
-            filepath = get_default_autosave_filepath()
-        else:
-            directory = os.path.dirname(ebc.get_session().filepath)
+        if ebc.get_session().filepath:
+            directory = (preferences.get('autosave_filepath')
+                if preferences.get('autosave_filepath')
+                else os.path.dirname(ebc.get_session().filepath))
             filename = os.path.basename(ebc.get_session().filepath)
             basename = os.path.splitext(filename)[0]
             filepath = get_autosave_incremental_filename(directory, basename)
+        else:
+            filepath = get_default_autosave_filepath()
 
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
         data = ebc.get_session().serialize()
@@ -67,7 +71,9 @@ def get_documents_folder():
 
 
 def get_default_autosave_filepath():
-    directory = f'{get_documents_folder()}/Embarker/autosaves'
+    directory = (f'{get_documents_folder()}/Embarker/autosaves'
+        if not preferences.get('autosave_filepath')
+        else preferences.get('autosave_filepath'))
     return get_autosave_incremental_filename(directory, DEFAULT_FILENAME)
 
 

@@ -1,6 +1,7 @@
+import os
 from PySide6 import QtWidgets, QtCore, QtGui
 from embarker import preferences
-
+from embarker.autosave import get_documents_folder
 
 class PreferencesWindow(QtWidgets.QWidget):
     def __init__(self, parent=None):
@@ -8,7 +9,7 @@ class PreferencesWindow(QtWidgets.QWidget):
         self.setWindowTitle('Preferences')
 
         self.preferences = {
-            # "Autosave" : AutosaveWidget(),
+            "Autosave" : AutosaveWidget(),
             "User Color" : UserColorWidget()
         }
 
@@ -62,9 +63,56 @@ class PreferencesCategoriesModel(QtCore.QAbstractListModel):
 class AutosaveWidget(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        label_text = QtWidgets.QLabel('Autosave Options : Coming Later')
-        layout = QtWidgets.QHBoxLayout(self)
-        layout.addWidget(label_text)
+        filepath = None
+        timer = self.get_timer()
+
+        timer_label = QtWidgets.QLabel("Autosave Timer (in seconds)")
+        int_validator = QtGui.QIntValidator()
+        self.timer_line = QtWidgets.QLineEdit()
+        self.timer_line.setText(str(timer))
+        self.timer_line.setValidator(int_validator)
+
+        filepath_label = QtWidgets.QLabel("Autosave Filepath")
+        self.filepath_line = QtWidgets.QLineEdit("")
+        self.filepath_line.setText(self.get_filepath())
+
+        save_button = QtWidgets.QPushButton("Save changes")
+        save_button.clicked.connect(lambda _: self.save_settings())
+        reset_button = QtWidgets.QPushButton("Reset Settings")
+        reset_button.clicked.connect(lambda _: self.reset_settings())
+
+        layout = QtWidgets.QFormLayout(self)
+        layout.addRow(timer_label, self.timer_line)
+        layout.addRow(filepath_label, self.filepath_line)
+        buttons_layout = QtWidgets.QHBoxLayout()
+        buttons_layout.addWidget(reset_button)
+        buttons_layout.addWidget(save_button)
+        layout.addRow(QtWidgets.QLabel(), buttons_layout)
+
+    def get_timer(self):
+        if preferences.get('autosave_timer'):
+            # divide by 100 for seconds instead of ms
+            return round(int(preferences.get('autosave_timer')) / 1000)
+        return 30 # default value
+
+    def get_filepath(self):
+        if preferences.get('autosave_filepath'):
+            return preferences.get('autosave_filepath')
+        return get_documents_folder()
+
+    def save_settings(self):
+        preferences.set('autosave_timer', int(self.timer_line.text()) * 1000)
+        filepath = self.filepath_line.text()
+        if not os.path.exists(filepath):
+            self.filepath_line.setText(self.get_filepath())
+            filepath = self.filepath_line.text()
+        preferences.set('autosave_filepath', filepath)
+
+    def reset_settings(self):
+        self.filepath_line.setText(get_documents_folder())
+        self.timer_line.setText('300')
+        preferences.delete('autosave_timer')
+        preferences.delete('autosave_filepath')
 
 
 class UserColorWidget(QtWidgets.QWidget):
