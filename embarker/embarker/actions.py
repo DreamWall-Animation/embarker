@@ -367,7 +367,7 @@ def get_default_actions(mainwindow):
             'category': 'Preferences',
             'icon': None,
             'group': None,
-            'method': mainwindow.reset_preferences.show,
+            'method': mainwindow.reset_preferences,
             'checkable': False,
             'shortcut': None,
         },

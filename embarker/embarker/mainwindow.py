@@ -20,7 +20,7 @@ from embarker.pluginregistry import PluginRegistry
 from embarker.pluginmanager import PluginManager
 from embarker.playlist import Playlist
 from embarker.preferences import Preferences
-from embarker.preferencesmanager import PreferencesWindow, ResetPreferences
+from embarker.preferencesmanager import PreferencesWindow, reset_preferences
 from embarker.decoder import EXTENSIONS
 from embarker.relocator import MovieRelocator
 from embarker.session import Session
@@ -94,7 +94,7 @@ class EmbarkerMainWindow(QtWidgets.QMainWindow):
         self.plugin_manager = PluginManager(self.pluginregistry, self)
         self.shortcut_manager = ShortcutManager(self.actionregistry, self)
         self.preferences_window = PreferencesWindow(self)
-        self.reset_preferences = ResetPreferences(self)
+        self.reset_preferences = reset_preferences
 
         self.movie_relocator = MovieRelocator(self)
         self.recent_session_menu = QtWidgets.QMenu('Recent sessions')
