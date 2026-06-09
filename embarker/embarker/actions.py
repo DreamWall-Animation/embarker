@@ -442,6 +442,16 @@ def get_default_actions(mainwindow):
             'shortcut': QtGui.QKeySequence(Qt.Key.Key_O),
         },
         {
+            'id': 'SwitchAlwaysOnTop',
+            'text': 'Always on top',
+            'category': 'View',
+            'icon': None,
+            'group': None,
+            'method': mainwindow.switch_always_on_top,
+            'checkable': True,
+            'shortcut': None,
+        },
+        {
             'id': 'ToggleOnionSkin',
             'text': 'Onion skin',
             'category': 'View',

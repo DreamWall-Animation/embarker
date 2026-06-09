@@ -4,6 +4,7 @@ from embarker import preferences
 from embarker.autosave import get_documents_folder
 import embarker.commands as ebc
 
+
 class PreferencesWindow(QtWidgets.QWidget):
 
     def __init__(self, parent=None):
@@ -54,12 +55,12 @@ class PreferencesCategoriesModel(QtCore.QAbstractListModel):
           super().__init__(parent)
           self.values =values
 
-    def data(self, index, role = None):
+    def data(self, index, role=None):
         if role == QtCore.Qt.ItemDataRole.DisplayRole :
             return self.values[index.row()]
         return None
 
-    def rowCount(self, parent = None):
+    def rowCount(self, parent=None):
         return len(self.values)
 
 

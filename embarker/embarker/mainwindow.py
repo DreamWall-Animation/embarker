@@ -251,6 +251,9 @@ class EmbarkerMainWindow(QtWidgets.QMainWindow):
         self.canvas.mute = state
         self.actionregistry.get('ToggleMuteAnnotations').setChecked(state)
 
+        state = bool(self.windowFlags() & Qt.WindowType.WindowStaysOnTopHint)
+        self.actionregistry.get('SwitchAlwaysOnTop').setChecked(state)
+
         QtCore.QTimer.singleShot(1, self.restore_window_geometry)
 
     def save_states(self):
@@ -359,6 +362,7 @@ class EmbarkerMainWindow(QtWidgets.QMainWindow):
         view.addAction(self.actionregistry.get('ZenMode'))
         view.addAction(self.actionregistry.get('FullScreen'))
         view.addAction(self.actionregistry.get('DefaultState'))
+        view.addAction(self.actionregistry.get('SwitchAlwaysOnTop'))
         view.addAction(self.actionregistry.get('ToggleMuteAnnotations'))
         view.addSeparator()
         view.addMenu(zoom_menu)
@@ -582,10 +586,17 @@ class EmbarkerMainWindow(QtWidgets.QMainWindow):
         layout.addWidget(env_widget)
         dialog.exec_()
 
+    def switch_always_on_top(self):
+        flags = self.windowFlags()
+        flags = (
+            flags & ~Qt.WindowType.WindowStaysOnTopHint if
+            flags & Qt.WindowType.WindowStaysOnTopHint else
+            flags | Qt.WindowType.WindowStaysOnTopHint)
+        self.setWindowFlags(flags)
+        self.show()
+
     def quit(self):
         self.save_tools_states()
-
-
 
 class DocksMenu(QtWidgets.QMenu):
     def __init__(self, mainwindow, parent=None):
