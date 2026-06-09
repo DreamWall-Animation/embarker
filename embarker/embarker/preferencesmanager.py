@@ -47,6 +47,14 @@ class PreferencesWindow(QtWidgets.QWidget):
         for item_key in self.preferences.keys() :
             self.preferences[item_key].setVisible(item_key == key)
 
+    def reset_preferences(self):
+        r =  QtWidgets.QMessageBox.question(
+            None,
+            'Reset preferences ?',
+            'This action is not undoable.\nWould you like to continue?')
+        if r == QtWidgets.QMessageBox.Yes:
+            preferences.delete_all()
+
 
 class PreferencesCategoriesModel(QtCore.QAbstractListModel):
 
@@ -183,12 +191,3 @@ class UserColorWidget(QtWidgets.QWidget):
         self.user_color = color
         self.user_color.setAlpha(255)
         self.refresh_color()
-
-
-def reset_preferences(_):
-    r =  QtWidgets.QMessageBox.question(
-        None,
-        'Reset preferences ?',
-        'This action is not undoable.\nWould you like to continue?')
-    if r == QtWidgets.QMessageBox.Yes:
-        preferences.delete_all()

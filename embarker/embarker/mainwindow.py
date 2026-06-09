@@ -20,7 +20,7 @@ from embarker.pluginregistry import PluginRegistry
 from embarker.pluginmanager import PluginManager
 from embarker.playlist import Playlist
 from embarker.preferences import Preferences
-from embarker.preferencesmanager import PreferencesWindow, reset_preferences
+from embarker.preferencesmanager import PreferencesWindow
 from embarker.decoder import EXTENSIONS
 from embarker.relocator import MovieRelocator
 from embarker.session import Session
@@ -94,7 +94,6 @@ class EmbarkerMainWindow(QtWidgets.QMainWindow):
         self.plugin_manager = PluginManager(self.pluginregistry, self)
         self.shortcut_manager = ShortcutManager(self.actionregistry, self)
         self.preferences_window = PreferencesWindow(self)
-        self.reset_preferences = reset_preferences
 
         self.movie_relocator = MovieRelocator(self)
         self.recent_session_menu = QtWidgets.QMenu('Recent sessions')
@@ -509,7 +508,8 @@ class EmbarkerMainWindow(QtWidgets.QMainWindow):
         self.timeline.update()
         self.session.add_annotation_at(
             self.session.playlist.frame, self.canvas.model)
-        condition = ( self.canvas.model.metadata.get('user_color') is None and
+        condition = (
+            self.canvas.model.metadata.get('user_color') is None and
             self.preferences.get('user_color'))
         if condition:
             user_color = self.preferences.get('user_color')
