@@ -72,7 +72,7 @@ def get_default_actions(mainwindow):
         },
         {
             'id': 'DeleteCurrentAnnotation',
-            'text': 'Delete Current Annotation',
+            'text': 'Delete current annotation',
             'category': 'Session',
             'icon': None,
             'group': None,
@@ -203,7 +203,7 @@ def get_default_actions(mainwindow):
         },
         {
             'id': 'ImportPlaylist',
-            'text': 'Import Playlist',
+            'text': 'Import playlist',
             'category': 'Playlist',
             'icon': None,
             'group': None,
@@ -360,6 +360,16 @@ def get_default_actions(mainwindow):
             'method': ebc.reset_canvas,
             'checkable': False,
             'shortcut': QtGui.QKeySequence(Qt.Key_F),
+        },
+        {
+            'id': 'ResetAllPreferences',
+            'text': 'Reset preferences',
+            'category': 'Preferences',
+            'icon': None,
+            'group': None,
+            'method': mainwindow.reset_preferences.show,
+            'checkable': False,
+            'shortcut': None,
         },
         {
             'id': 'RemoveCurrentVideo',

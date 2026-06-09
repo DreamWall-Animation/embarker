@@ -16,7 +16,8 @@ class AutoSave(QtCore.QObject):
         self.schedule_auto_save = False
 
     def start(self):
-        self.timer.start(int(preferences.get('autosave_timer'))
+        self.timer.start(
+            int(preferences.get('autosave_timer'))
             if preferences.get('autosave_timer') else 30000, self)
 
     def restart_timer(self):

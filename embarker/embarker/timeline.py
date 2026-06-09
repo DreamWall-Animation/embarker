@@ -169,7 +169,7 @@ class TimelineSlider(QtWidgets.QWidget):
         frame = self.get_frame_from_point(point)
         annotated_frames = ebc.get_session().get_annotated_frames()
         menu = QtWidgets.QMenu()
-        frame_exists: bool = frame in annotated_frames
+        frame_exists = frame in annotated_frames
 
         delete_action = QtGui.QAction(f'Delete annotation on frame: {frame}')
         menu.addAction(delete_action)
@@ -241,8 +241,8 @@ class TimelineSlider(QtWidgets.QWidget):
         session = ebc.get_session()
         frame = self.get_frame_from_point(event.position().toPoint())
         annoted_frames = ebc.get_session().get_annotated_frames()
-        bracket_frame: bool = frame in [session.playlist.playback_start,
-                       session.playlist.playback_end]
+        bracket_frame = frame in [session.playlist.playback_start,
+            session.playlist.playback_end]
 
         if frame in annoted_frames and (ctrl_pressed() or shift_pressed()):
             QtWidgets.QApplication.setOverrideCursor(
@@ -313,7 +313,6 @@ class TimelineSlider(QtWidgets.QWidget):
         ebc.set_frame(frame)
         self.moving_model = None
         self.origin_frame = None
-
 
     def mouseDoubleClickEvent(self, event):
         if event.button() != QtCore.Qt.LeftButton:

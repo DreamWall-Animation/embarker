@@ -2,8 +2,10 @@ import os
 from PySide6 import QtWidgets, QtCore, QtGui
 from embarker import preferences
 from embarker.autosave import get_documents_folder
+import embarker.commands as ebc
 
 class PreferencesWindow(QtWidgets.QWidget):
+
     def __init__(self, parent=None):
         super().__init__(parent, QtCore.Qt.Tool)
         self.setWindowTitle('Preferences')
@@ -47,6 +49,7 @@ class PreferencesWindow(QtWidgets.QWidget):
 
 
 class PreferencesCategoriesModel(QtCore.QAbstractListModel):
+
     def __init__(self, values, parent=None):
           super().__init__(parent)
           self.values =values
@@ -61,9 +64,9 @@ class PreferencesCategoriesModel(QtCore.QAbstractListModel):
 
 
 class AutosaveWidget(QtWidgets.QWidget):
+
     def __init__(self, parent=None):
         super().__init__(parent)
-        filepath = None
         timer = self.get_timer()
 
         timer_label = QtWidgets.QLabel("Autosave Timer (in seconds)")
@@ -107,6 +110,8 @@ class AutosaveWidget(QtWidgets.QWidget):
             self.filepath_line.setText(self.get_filepath())
             filepath = self.filepath_line.text()
         preferences.set('autosave_filepath', filepath)
+        autosave = ebc.get_main_window().autosave
+        autosave.restart_timer()
 
     def reset_settings(self):
         self.filepath_line.setText(get_documents_folder())
@@ -116,6 +121,7 @@ class AutosaveWidget(QtWidgets.QWidget):
 
 
 class UserColorWidget(QtWidgets.QWidget):
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.user_color = QtGui.QColor('#999900')
@@ -177,3 +183,32 @@ class UserColorWidget(QtWidgets.QWidget):
         self.user_color = color
         self.user_color.setAlpha(255)
         self.refresh_color()
+
+
+class ResetPreferences(QtWidgets.QDialog):
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Reset Preferences")
+        label = QtWidgets.QLabel("Do you want to reset all your preferences ?")
+
+        self.reset_button = QtWidgets.QPushButton("Reset")
+        self.cancel_button = QtWidgets.QPushButton("Cancel")
+
+        self.reset_button.clicked.connect(lambda _: self.reset_preferences())
+        self.cancel_button.clicked.connect(lambda _: self.reject())
+
+        button_layout = QtWidgets.QHBoxLayout()
+        button_layout.addWidget(self.reset_button)
+        button_layout.addWidget(self.cancel_button)
+        layout = QtWidgets.QVBoxLayout()
+        layout.addWidget(label)
+        layout.addLayout(button_layout)
+        self.setLayout(layout)
+
+    def reset_preferences(self):
+        preferences.delete_all()
+        self.accept()
+
+    def sizeHint(self):
+        return QtCore.QSize(150, 250)
