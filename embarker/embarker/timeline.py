@@ -11,7 +11,9 @@ from embarker import preferences
 SLIDER_HEIGHT = 22
 HIGHLIGHT_Y = SLIDER_HEIGHT - 4
 MARKER_Y = 8
+ZOOM_HEIGHT = 2
 BRACKET_TRIANGLE_SIZE = 4
+
 BG_COLOR = QtGui.QColor('#232323')
 BG_COLOR_ALT = QtGui.QColor('#151515')
 SEPARATOR_COLOR = QtGui.QColor('#444444')
@@ -20,6 +22,8 @@ HIGHLIGHT_COLOR = QtGui.QColor('#0088FF')
 HIGHLIGHT_COLOR.setAlpha(100)
 MARKER_COLOR = QtGui.QColor('#999900')
 BRACKET_COLOR = QtGui.QColor('#FFF')
+ZOOM_COLOR = QtGui.QColor("#5b5b5c")
+ZOOM_COLOR_ALT = QtGui.QColor("#7c7e82")
 
 CURSOR_FIXED_WIDTH = 8
 HIGHLIGHT_FIXED_WIDTH = 2
@@ -480,6 +484,14 @@ class TimelineSlider(QtWidgets.QWidget):
                 list(session.playlist.first_frames.values())
             )
 
+            if play_start or self.end_frame:
+                draw_zoom_slider(
+                    painter,
+                    self.rect(),
+                    self.start_frame,
+                    self.end_frame
+                )
+
         except Exception:
             import traceback
             print(traceback.format_exc())
@@ -668,7 +680,7 @@ def draw_contracted_slider(
     for frame in highlighted_values:
 
         # Check if frame is displayed
-        if display_frame_start < frame < display_frame_start + display_frame_count:
+        if display_frame_start < frame < display_end:
             x = (get_rectangles(display_frame_count, frame_width)
                 [frame - display_frame_start].left())
             painter.drawRect(QtCore.QRect(
@@ -684,6 +696,31 @@ def draw_contracted_slider(
         bracket_end = (play_end - display_frame_start + 1) * frame_width
         draw_bracket(painter, bracket_start, height, out=False)
         draw_bracket(painter, bracket_end, height, out=True)
+
+
+def draw_zoom_slider(
+        painter: QtGui.QPainter,
+        rect: QtCore.QRect,
+        display_start: int,
+        display_end: int):
+
+    session = ebc.get_session()
+    left = rect.left()
+    top = rect.top()
+    frame_size = rect.width() / session.playlist.frames_count
+
+    # Draw the whole timeline
+    painter.setPen(Qt.PenStyle.NoPen)
+    painter.setBrush(ZOOM_COLOR)
+    painter.drawRect(QtCore.QRect(
+        left, top, rect.width(), ZOOM_HEIGHT))
+
+    # Draw the displayed part
+    painter.setBrush(ZOOM_COLOR_ALT)
+    painter.drawRect(QtCore.QRect(
+        left + frame_size * display_start, top,
+        frame_size * (display_end - display_start),
+        ZOOM_HEIGHT + 1))
 
 
 def draw_bracket(painter: QtGui.QPainter, left, height, out=False):
@@ -709,10 +746,6 @@ def draw_bracket(painter: QtGui.QPainter, left, height, out=False):
     triangle.append(topleft)
     painter.drawPolygon(triangle)
 
-
-@lru_cache
-def get_rectangle_center(rect):
-    return rect.left() + 0.5 * rect.right()
 
 @lru_cache
 def get_rectangles(count, width, height=SLIDER_HEIGHT):
