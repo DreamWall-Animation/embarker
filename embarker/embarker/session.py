@@ -48,6 +48,11 @@ class Session:
         container = self.playlist.frames_containers[frame]
         return container.id, self.playlist.frames_frames[frame]
 
+    def get_annotations_by_frames(self):
+        return {
+            self.playlist.first_frames[container_id] + rf: model
+            for (container_id, rf), model in self.annotations.items()}
+
     def get_container_annotations(
             self, container_id,
             include_empty_current_frame=False,

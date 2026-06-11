@@ -26,6 +26,21 @@ HIGHLIGHT_FIXED_WIDTH = 2
 MARKER_FIXED_WIDTH = 1
 
 
+def ctrl_pressed():
+    modifiers = QtWidgets.QApplication.keyboardModifiers()
+    return modifiers == (modifiers | QtCore.Qt.ControlModifier)
+
+
+def shift_pressed():
+    modifiers = QtWidgets.QApplication.keyboardModifiers()
+    return modifiers == (modifiers | QtCore.Qt.ShiftModifier)
+
+
+def alt_pressed():
+    modifiers = QtWidgets.QApplication.keyboardModifiers()
+    return modifiers == (modifiers | QtCore.Qt.AltModifier)
+
+
 class TimeLineWidget(QtWidgets.QWidget):
 
     def __init__(self, parent=None):
@@ -138,6 +153,38 @@ class PlaybackOptionsWidget(QtWidgets.QWidget):
         self.current_frame.blockSignals(False)
 
 
+class MergeAnnotations(QtWidgets.QDialog) :
+    def __init__(self, parent=None) :
+        super().__init__(parent)
+        self.setWindowTitle('Conflicting Annotations')
+        self.resize(250, 100)
+        label = QtWidgets.QLabel('There already exists an annotation on this frame.')
+        self.merge_button = QtWidgets.QPushButton('Merge')
+        self.override_button = QtWidgets.QPushButton('Override')
+        self.cancel_button = QtWidgets.QPushButton('Cancel')
+        layout = QtWidgets.QVBoxLayout()
+        self.result = 0
+
+        button_layout = QtWidgets.QHBoxLayout()
+        button_layout.addWidget(self.merge_button)
+        button_layout.addWidget(self.override_button)
+        button_layout.addWidget(self.cancel_button)
+
+        self.cancel_button.clicked.connect(partial(self.set_result, 0))
+        self.merge_button.clicked.connect(partial(self.set_result, 1))
+        self.override_button.clicked.connect(partial(self.set_result, 2))
+
+        layout.addWidget(label)
+        layout.addLayout(button_layout)
+
+        self.setLayout(layout)
+        self.show()
+
+    def set_result(self, result):
+        self.result = result
+        self.accept()
+
+
 class TimelineSlider(QtWidgets.QWidget):
 
     def __init__(self, parent=None):
@@ -151,6 +198,10 @@ class TimelineSlider(QtWidgets.QWidget):
         self.moving_model = None
         self.origin_frame = None
 
+        self.remapping = False
+        self.start_frame = None
+        self.end_frame = None
+
         self.setSizePolicy(
             QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         self.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)
@@ -163,7 +214,20 @@ class TimelineSlider(QtWidgets.QWidget):
 
     @property
     def maximum(self):
+        if self.end_frame :
+            return self.end_frame
         return ebc.get_session().playlist.frames_count - 1
+
+    @property
+    def minimum(self):
+        if not self.start_frame:
+            return 0
+        return self.start_frame
+
+    def count(self):
+        if self.start_frame or self.end_frame:
+            return self.end_frame - self.start_frame + 1
+        return ebc.get_session().playlist.frames_count
 
     def exec_context_menu(self, point):
         frame = self.get_frame_from_point(point)
@@ -233,8 +297,11 @@ class TimelineSlider(QtWidgets.QWidget):
 
         if event.button() == QtCore.Qt.MiddleButton:
             self._mmb_pressed = True
-            value = int(event.pos().x() / self.width() * self.count())
+            value = self.get_frame_from_point(event.position().toPoint())
             ebc.set_playback_range(value, value + 1)
+            if ctrl_pressed():
+                self.remapping = True
+
         self.update()
 
     def mouseMoveEvent(self, event):
@@ -272,6 +339,12 @@ class TimelineSlider(QtWidgets.QWidget):
     def mouseReleaseEvent(self, event):
         if event.button() == QtCore.Qt.MiddleButton:
             self._mmb_pressed = False
+            if self.remapping:
+                self.remapping = False
+                session = ebc.get_session()
+                self.start_frame = session.playlist.playback_start
+                self.end_frame = session.playlist.playback_end
+                self.update()
 
         if event.button() == QtCore.Qt.RightButton:
             self.exec_context_menu(event.position().toPoint())
@@ -279,44 +352,47 @@ class TimelineSlider(QtWidgets.QWidget):
         if event.button() != QtCore.Qt.LeftButton:
             return
 
-        self._mlb_pressed = False
-        self.move_start_bracket = False
-        self.move_end_bracket = False
+        if True:
+            self._mlb_pressed = False
+            self.move_start_bracket = False
+            self.move_end_bracket = False
 
-        if not self.moving_model:
-            self.origin_frame = None
-            return
+            if not self.moving_model:
+                self.origin_frame = None
+                return
 
-        frame = self.get_frame_from_point(event.position().toPoint())
+            frame = self.get_frame_from_point(event.position().toPoint())
 
-        if frame not in ebc.get_session().get_annotated_frames():
-            idx = ebc.get_session().get_annotation_index(frame)
-            ebc.get_session().annotations[idx] = self.moving_model
-            self.update()
-            self.set_value_from_point(event.position().toPoint())
+            if frame not in ebc.get_session().get_annotated_frames():
+                idx = ebc.get_session().get_annotation_index(frame)
+                ebc.get_session().annotations[idx] = self.moving_model
+                self.update()
+                self.set_value_from_point(event.position().toPoint())
+                ebc.set_frame(frame)
+                self.moving_model = None
+                self.origin_frame = None
+                return
+
+            dialog = MergeAnnotations()
+            dialog.exec_()
+            if dialog.result == 0:
+                self.cancel()
+
+            if dialog.result == 1:
+                self.merge(event.position().toPoint())
+
+            if dialog.result == 2:
+                self.override(event.position().toPoint())
+
             ebc.set_frame(frame)
             self.moving_model = None
             self.origin_frame = None
-            return
-
-        dialog = MergeAnnotations()
-        dialog.exec_()
-        if dialog.result == 0:
-            self.cancel()
-
-        if dialog.result == 1:
-            self.merge(event.position().toPoint())
-
-        if dialog.result == 2:
-            self.override(event.position().toPoint())
-
-        ebc.set_frame(frame)
-        self.moving_model = None
-        self.origin_frame = None
 
     def mouseDoubleClickEvent(self, event):
         if event.button() != QtCore.Qt.LeftButton:
             return
+        self.start_frame = None
+        self.end_frame = None
         point = event.position().toPoint()
         frame = int(point.x() / self.width() * self.count())
         container = ebc.get_session().playlist.frames_containers[frame]
@@ -333,38 +409,8 @@ class TimelineSlider(QtWidgets.QWidget):
             ebc.set_playback_end(end)
         self.update()
 
-    def paintEvent(self, _):
-        painter = QtGui.QPainter(self)
-        try:
-            # Will maybe change this so we have annotation in the canvas
-            marked_frames = ebc.get_session().get_annotated_frames()
-            moving_metadata = None
-            if self.moving_model :
-                metadata_color = self.moving_model.metadata.get('user_color')
-                moving_metadata = metadata_color
-                if not moving_metadata:
-                    moving_metadata = MARKER_COLOR.name()
-
-            drawslider(
-                painter=painter,
-                full_rect=self.rect(),
-                count=self.count(),
-                current=self.value,
-                highlighted_values=ebc.get_session().playlist.frames_images.keys(),
-                marked_values=marked_frames,
-                play_start=ebc.get_session().playlist.playback_start,
-                play_end=ebc.get_session().playlist.playback_end,
-                moving_frame=moving_metadata,
-                separators=list(ebc.get_session().playlist.first_frames.values()))
-
-        except Exception:
-            import traceback
-            print(traceback.format_exc())
-        finally:
-            painter.end()
-
     def update_playback_range_from_point(self, point):
-        value = int(point.x() / self.width() * self.count())
+        value = self.get_frame_from_point(point)
         if ebc.get_session().playlist.playback_start is None:
             ebc.set_playback_range(value, value + 1)
             self.update()
@@ -378,17 +424,16 @@ class TimelineSlider(QtWidgets.QWidget):
         self.update()
 
     def set_value_from_point(self, point):
+        offset = self.start_frame if self.start_frame else 0
         value = int(point.x() / self.width() * self.count())
-        frame = max(0, min(self.maximum, value))
+        frame = max(self.minimum, min(self.maximum, value + offset))
         if frame != ebc.get_frame():
             ebc.set_frame(frame)
 
-    def get_frame_from_point(self, point) :
+    def get_frame_from_point(self, point):
+        offset = self.start_frame if self.start_frame else 0
         value =  int(point.x() / self.width() * self.count())
-        return max(0, min(self.maximum, value))
-
-    def count(self):
-        return self.maximum + 1
+        return max(self.minimum, min(self.maximum, value + offset))
 
     def merge(self, point):
         frame = self.get_frame_from_point(point)
@@ -406,40 +451,261 @@ class TimelineSlider(QtWidgets.QWidget):
         index = ebc.get_session().get_annotation_index(self.origin_frame)
         ebc.get_session().annotations[index] = self.moving_model
 
+    def paintEvent(self, _):
+        painter = QtGui.QPainter(self)
+        try:
+            # # Will maybe change this so we have annotation in the canvas
+            # session = ebc.get_session()
+            # # marked_frames = session.get_annotated_frames()
+            # # if self.start_frame:
+            # #     for index in range(len(marked_frames)):
+            # #         pass
+            # #         # marked_frames[index] = marked_frames[index] - self.start_frame
 
-class MergeAnnotations(QtWidgets.QDialog) :
-    def __init__(self, parent=None) :
-        super().__init__(parent)
-        self.setWindowTitle('Conflicting Annotations')
-        self.resize(250, 100)
-        label = QtWidgets.QLabel('There already exists an annotation on this frame.')
-        self.merge_button = QtWidgets.QPushButton('Merge')
-        self.override_button = QtWidgets.QPushButton('Override')
-        self.cancel_button = QtWidgets.QPushButton('Cancel')
-        layout = QtWidgets.QVBoxLayout()
-        self.result = 0
+            # moving_metadata = None
+            # if self.moving_model :
+            #     metadata_color = self.moving_model.metadata.get('user_color')
+            #     moving_metadata = metadata_color
+            #     if not moving_metadata:
+            #         moving_metadata = MARKER_COLOR.name()
 
-        button_layout = QtWidgets.QHBoxLayout()
-        button_layout.addWidget(self.merge_button)
-        button_layout.addWidget(self.override_button)
-        button_layout.addWidget(self.cancel_button)
+            # current = (self.value - self.start_frame
+            #     if self.start_frame else self.value)
+            # play_start = (session.playlist.playback_start
+            #     if not self.start_frame
+            #     else session.playlist.playback_start - self.start_frame)
+            # play_end = (session.playlist.playback_end
+            #     if not self.end_frame
+            #     else self.count())
 
-        self.cancel_button.clicked.connect(partial(self.set_result, 0))
-        self.merge_button.clicked.connect(partial(self.set_result, 1))
-        self.override_button.clicked.connect(partial(self.set_result, 2))
+            # drawslider_old(
+            #     painter=painter,
+            #     full_rect=self.rect(),
+            #     count=self.count(),
+            #     current=current,
+            #     highlighted_values=session.playlist.frames_images.keys(),
+            #     # marked_values=marked_frames,
+            #     play_start=play_start,
+            #     play_end=play_end,
+            #     moving_frame=moving_metadata,
+            #     separators=list(session.playlist.first_frames.values()))
 
-        layout.addWidget(label)
-        layout.addLayout(button_layout)
+            session = ebc.get_session()
+            play_start = (self.start_frame
+                if self.start_frame and not self.remapping else 0)
 
-        self.setLayout(layout)
-        self.show()
+            moving_metadata = None
+            if self.moving_model :
+                metadata_color = self.moving_model.metadata.get('user_color')
+                moving_metadata = metadata_color
+                if not moving_metadata:
+                    moving_metadata = MARKER_COLOR.name()
 
-    def set_result(self, result):
-        self.result = result
-        self.accept()
+            draw_slider(
+                painter,
+                self.rect(),
+                self.count(),
+                play_start,
+                session.playlist.frame,
+                session.playlist.frames_images.keys(),
+                moving_metadata,list(session.playlist.first_frames.values())
+            )
+
+        except Exception:
+            import traceback
+            print(traceback.format_exc())
+        finally:
+            painter.end()
 
 
-def draw_slider_brackets(
+def draw_slider(
+        painter: QtGui.QPainter,
+        full_rect: QtCore.QRect,
+        display_frame_count: int,
+        display_frame_start: int,
+        current_frame: int,
+        cached_values: list[int], #highlighte values
+        moving_frame: str|None,
+        separators: list[int]):
+
+    if display_frame_count == 0:
+        painter.drawRect(full_rect)
+        return
+
+    width = full_rect.width()
+    frame_width = width / display_frame_count
+
+    if frame_width > 4:
+        draw_expanded_slider(
+            painter = painter,
+            frame_width = frame_width,
+            display_frame_start = display_frame_start,
+            display_frame_count = display_frame_count,
+            current_frame = current_frame,
+            highlighted_values = cached_values,
+            moving_frame = moving_frame,
+            separators = separators
+        )
+    else:
+        draw_contracted_slider(
+            painter=painter,
+            frame_width = frame_width,
+            display_frame_start = display_frame_start,
+            display_frame_count = display_frame_count,
+            current_frame = current_frame,
+            highlighted_values = cached_values,
+            moving_frame = moving_frame,
+            separators = separators
+        )
+
+
+def draw_expanded_slider(
+        painter: QtGui.QPainter,
+        frame_width: int,
+        display_frame_start: int,
+        display_frame_count: int,
+        current_frame: int,
+        highlighted_values: list[int],
+        moving_frame: str|None,
+        separators: list[int]):
+
+    session = ebc.get_session()
+    annotations = session.get_annotations_by_frames()
+
+    for i, value_rect in enumerate(
+            get_rectangles(display_frame_count, frame_width)):
+
+        # Drawn checkered pattern
+        painter.setPen(Qt.PenStyle.NoPen)
+        color = BG_COLOR if i % 2 else BG_COLOR_ALT
+        painter.setBrush(color)
+        painter.drawRect(value_rect)
+
+        # Draw current frame
+        absolute_frame = i + display_frame_start
+        if absolute_frame == current_frame:
+            color = QtGui.QColor(CURSORCOLOR)
+            pen = QtGui.QPen(color) if i in annotations else Qt.NoPen
+            brush = Qt.NoBrush if i in annotations else QtGui.QBrush(color)
+            painter.setPen(pen)
+            painter.setBrush(brush)
+            painter.drawRect(value_rect)
+
+            # If moving an annotations, take its color
+            if moving_frame:
+                painter.setBrush(QtGui.QColor(moving_frame))
+                painter.drawRect(value_rect.adjusted(0, 0, 0, 0))
+
+        # Draw marker frames
+        if absolute_frame in annotations:
+            annotation = ebc.get_session().get_annotation_at(absolute_frame)
+            if annotation :
+                metadata = annotation.metadata
+                painter.setBrush(
+                    QtGui.QColor(QtGui.QColor(metadata.get('user_color'))
+                    if metadata and metadata.get('user_color')
+                    else MARKER_COLOR))
+            painter.drawRect(value_rect.adjusted(0, 0, 0, 0))
+
+        # Draw highlighted frames
+        if absolute_frame in highlighted_values:
+            painter.setBrush(HIGHLIGHT_COLOR)
+            painter.drawRect(value_rect.adjusted(0, HIGHLIGHT_Y, 0, 0))
+
+        # Draw separators
+        if absolute_frame in separators:
+            painter.setPen(QtGui.QColor(SEPARATOR_COLOR))
+            painter.setBrush(QtGui.QColor(SEPARATOR_COLOR))
+            painter.drawLine(value_rect.topLeft(), value_rect.bottomLeft())
+            left = value_rect.left() + 2
+            topleft = QtCore.QPointF(left, value_rect.top())
+            bottomleft = QtCore.QPointF(left, value_rect.bottom())
+            painter.drawLine(topleft, bottomleft)
+
+    # Draw brackets
+    height = SLIDER_HEIGHT - 1
+    play_start = session.playlist.playback_start
+    play_end = session.playlist.playback_end
+    display_end = display_frame_start + display_frame_count - 1
+
+    print(play_start == display_frame_start)
+    print(play_end == display_end)
+
+    # Dont draw bracket if it takes up all the drawn timeline
+    if not play_start == display_frame_start or not play_end == display_end:
+        bracket_start = (play_start - display_frame_start) * frame_width
+        bracket_end = (play_end - display_frame_start + 1) * frame_width
+        draw_bracket(painter, bracket_start, height, out=False)
+        draw_bracket(painter, bracket_end, height, out=True)
+
+
+def draw_contracted_slider(
+        painter: QtGui.QPainter,
+        frame_width: int,
+        display_frame_start: int,
+        display_frame_count: int,
+        current_frame: int,
+        highlighted_values: list[int],
+        moving_frame: str|None,
+        separators: list[int]):
+    pass
+
+
+def draw_expanded_slider_old(
+        painter: QtGui.QPainter,
+        frame_width: int,
+        count: int,
+        current: int,
+        highlighted_values: list[int],
+        moving_frame: QtGui.QColor|None,
+        play_start: int,
+        separators: list[int]
+    ):
+    session = ebc.get_session()
+    annotations_by_frames = session.get_annotations_by_frames()
+    for i, value_rect in enumerate(get_rectangles(count, frame_width)):
+        frame = i - play_start
+        painter.setPen(Qt.PenStyle.NoPen)
+        color = BG_COLOR if i % 2 else BG_COLOR_ALT
+        painter.setBrush(color)
+        painter.drawRect(value_rect)
+        # Markers
+        if frame in annotations_by_frames:
+            annotation = ebc.get_session().get_annotation_at(frame)
+            if annotation :
+                metadata = annotation.metadata
+                painter.setBrush(QtGui.QColor(QtGui.QColor(metadata.get('user_color')) if
+                    metadata and metadata.get('user_color') else MARKER_COLOR))
+            painter.drawRect(value_rect.adjusted(0, 0, 0, 0))
+
+        if i == current:
+            color = QtGui.QColor(CURSORCOLOR)
+            pen = QtGui.QPen(color) if i in annotations_by_frames else Qt.NoPen
+            brush = Qt.NoBrush if i in annotations_by_frames else QtGui.QBrush(color)
+            painter.setPen(pen)
+            painter.setBrush(brush)
+            painter.drawRect(value_rect)
+            if moving_frame:
+                painter.setBrush(QtGui.QColor(moving_frame))
+                painter.drawRect(value_rect.adjusted(0, 0, 0, 0))
+
+        painter.setPen(Qt.PenStyle.NoPen)
+        # Highlights
+        if frame in highlighted_values:
+            painter.setBrush(HIGHLIGHT_COLOR)
+            painter.drawRect(value_rect.adjusted(0, HIGHLIGHT_Y, 0, 0))
+
+        if i in separators:
+            painter.setPen(QtGui.QColor(SEPARATOR_COLOR))
+            painter.setBrush(QtGui.QColor(SEPARATOR_COLOR))
+            painter.drawLine(value_rect.topLeft(), value_rect.bottomLeft())
+            left = value_rect.left() + 2
+            topleft = QtCore.QPointF(left, value_rect.top())
+            bottomleft = QtCore.QPointF(left, value_rect.bottom())
+            painter.drawLine(topleft, bottomleft)
+
+
+def draw_slider_brackets_old(
         painter, rect, play_start, play_end, count, frame_width):
     height = rect.height() - 1
     play_start = play_start if play_start is not None else 0
@@ -450,7 +716,7 @@ def draw_slider_brackets(
         draw_bracket(painter, left, height, True)
 
 
-def drawslider(
+def drawslider_old(
         painter: QtGui.QPainter,
         full_rect: QtCore.QRect,
         count: int,
@@ -458,7 +724,7 @@ def drawslider(
         highlighted_values: list[int],
         play_start: int|None,
         play_end: int|None,
-        marked_values: list[int],
+        # marked_values: list[int],
         moving_frame: str|None,
         separators: list[int]):
 
@@ -471,16 +737,17 @@ def drawslider(
     max_value = count - 1
 
     if frame_width > 4:
-        draw_expanded_slider(
+        draw_expanded_slider_old(
             painter=painter,
             frame_width=frame_width,
             count=count,
             current=current,
             highlighted_values=highlighted_values,
-            marked_values=marked_values,
+            # marked_values=marked_values,
             moving_frame=moving_frame,
+            play_start=play_start,
             separators=separators)
-        draw_slider_brackets(
+        draw_slider_brackets_old(
             painter, full_rect, play_start, play_end, count, frame_width)
         return
 
@@ -513,9 +780,9 @@ def drawslider(
 
     # Markers
     painter.setBrush(MARKER_COLOR)
-    for value in marked_values:
+    for value in []:
         annotation = ebc.get_session().get_annotation_at(value)
-        if annotation :
+        if annotation:
             metadata = annotation.metadata
             painter.setBrush(QtGui.QColor(QtGui.QColor(metadata.get('user_color')) if
                 metadata and metadata.get('user_color') else MARKER_COLOR))
@@ -528,63 +795,12 @@ def drawslider(
     painter.setBrush(HIGHLIGHT_COLOR)
     for value in highlighted_values:
         x = get_marker_position(
-            value, max_value, width, HIGHLIGHT_FIXED_WIDTH, True)
+            value - play_start, max_value - play_start, width, HIGHLIGHT_FIXED_WIDTH, True)
         painter.drawRect(QtCore.QRect(
             x, HIGHLIGHT_Y, HIGHLIGHT_FIXED_WIDTH, SLIDER_HEIGHT))
 
-    draw_slider_brackets(
+    draw_slider_brackets_old(
         painter, full_rect, play_start, play_end, count, frame_width)
-
-
-def draw_expanded_slider(
-        painter: QtGui.QPainter,
-        frame_width: int,
-        count: int,
-        current: int,
-        highlighted_values: list[int],
-        marked_values: list[int],
-        moving_frame: QtGui.QColor|None,
-        separators: list[int]
-    ):
-    for i, value_rect in enumerate(get_rectangles(count, frame_width)):
-        painter.setPen(Qt.PenStyle.NoPen)
-        color = BG_COLOR if i % 2 else BG_COLOR_ALT
-        painter.setBrush(color)
-        painter.drawRect(value_rect)
-        # Markers
-        if i in marked_values:
-            annotation = ebc.get_session().get_annotation_at(i)
-            if annotation :
-                metadata = annotation.metadata
-                metadata = annotation.metadata
-                painter.setBrush(QtGui.QColor(QtGui.QColor(metadata.get('user_color')) if
-                    metadata and metadata.get('user_color') else MARKER_COLOR))
-
-            painter.drawRect(value_rect.adjusted(0, 0, 0, 0))
-        if i == current:
-            color = QtGui.QColor(CURSORCOLOR)
-            pen = QtGui.QPen(color) if i in marked_values else Qt.NoPen
-            brush = Qt.NoBrush if i in marked_values else QtGui.QBrush(color)
-            painter.setPen(pen)
-            painter.setBrush(brush)
-            painter.drawRect(value_rect)
-
-            if moving_frame:
-                painter.setBrush(QtGui.QColor(moving_frame))
-                painter.drawRect(value_rect.adjusted(0, 0, 0, 0))
-        painter.setPen(Qt.PenStyle.NoPen)
-        # Highlights
-        if i in highlighted_values:
-            painter.setBrush(HIGHLIGHT_COLOR)
-            painter.drawRect(value_rect.adjusted(0, HIGHLIGHT_Y, 0, 0))
-        if i in separators:
-            painter.setPen(QtGui.QColor(SEPARATOR_COLOR))
-            painter.setBrush(QtGui.QColor(SEPARATOR_COLOR))
-            painter.drawLine(value_rect.topLeft(), value_rect.bottomLeft())
-            left = value_rect.left() + 2
-            topleft = QtCore.QPointF(left, value_rect.top())
-            bottomleft = QtCore.QPointF(left, value_rect.bottom())
-            painter.drawLine(topleft, bottomleft)
 
 
 def draw_bracket(painter: QtGui.QPainter, left, height, out=False):
@@ -623,18 +839,3 @@ def get_marker_position(value, max_value, width, thickness, center=False):
         width -= thickness
         offset = thickness / 2
     return int((value / max_value) * (width - thickness)) + offset
-
-
-def ctrl_pressed():
-    modifiers = QtWidgets.QApplication.keyboardModifiers()
-    return modifiers == (modifiers | QtCore.Qt.ControlModifier)
-
-
-def shift_pressed():
-    modifiers = QtWidgets.QApplication.keyboardModifiers()
-    return modifiers == (modifiers | QtCore.Qt.ShiftModifier)
-
-
-def alt_pressed():
-    modifiers = QtWidgets.QApplication.keyboardModifiers()
-    return modifiers == (modifiers | QtCore.Qt.AltModifier)
