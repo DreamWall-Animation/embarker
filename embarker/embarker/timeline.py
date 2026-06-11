@@ -366,6 +366,7 @@ class TimelineSlider(QtWidgets.QWidget):
         if self.start_frame or self.end_frame :
             self.start_frame = None
             self.end_frame = None
+            self.update()
             return
 
         point = event.position().toPoint()
@@ -410,6 +411,18 @@ class TimelineSlider(QtWidgets.QWidget):
         value =  int(point.x() / self.width() * self.count())
         return max(self.minimum, min(self.maximum, value + offset))
 
+    def zoom(self):
+        session = ebc.get_session()
+        self.start_frame = session.playlist.playback_start
+        self.end_frame = session.playlist.playback_end
+        self.update()
+
+    def reset(self):
+        self.start_frame = None
+        self.end_frame = None
+        ebc.set_playback_range(0, ebc.get_session().playlist.frames_count - 1)
+        self.update()
+
     def merge(self, point):
         frame = self.get_frame_from_point(point)
         target = ebc.get_session().get_annotation_at(frame)
@@ -432,6 +445,12 @@ class TimelineSlider(QtWidgets.QWidget):
         menu = QtWidgets.QMenu()
         frame_exists = frame in annotated_frames
 
+        zoom_action = QtGui.QAction('Zoom into playback range')
+        menu.addAction(zoom_action)
+
+        reset_action = QtGui.QAction("Reset Timeline")
+        menu.addAction(reset_action)
+
         delete_action = QtGui.QAction(f'Delete annotation on frame: {frame}')
         menu.addAction(delete_action)
         delete_action.setEnabled(frame_exists)
@@ -441,6 +460,13 @@ class TimelineSlider(QtWidgets.QWidget):
         recolor_action.setEnabled(frame_exists)
 
         action = menu.exec(self.mapToGlobal(point))
+
+        if action == zoom_action:
+            self.zoom()
+
+        if action == reset_action:
+            self.reset()
+
         if action == delete_action:
             index = ebc.get_session().get_annotation_index(frame)
             del ebc.get_session().annotations[index]
@@ -750,12 +776,3 @@ def draw_bracket(painter: QtGui.QPainter, left, height, out=False):
 @lru_cache
 def get_rectangles(count, width, height=SLIDER_HEIGHT):
     return [QtCore.QRectF(i * width, 0, width, height) for i in range(count)]
-
-
-@lru_cache
-def get_marker_position(value, max_value, width, thickness, center=False):
-    offset = 0
-    if center:
-        width -= thickness
-        offset = thickness / 2
-    return int((value / max_value) * (width - thickness)) + offset

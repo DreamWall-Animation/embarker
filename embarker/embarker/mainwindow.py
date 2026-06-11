@@ -355,7 +355,9 @@ class EmbarkerMainWindow(QtWidgets.QMainWindow):
 
         view = QtWidgets.QMenu('&View')
         view.addAction(self.actionregistry.get('ResetCanvas'))
+        view.addAction(self.actionregistry.get('ResetTimeline'))
         view.addSeparator()
+        view.addAction(self.actionregistry.get('ZoomTimeline'))
         view.addAction(self.actionregistry.get('ToggleOnionSkin'))
         view.addSeparator()
         view.addAction(self.actionregistry.get('ZenMode'))
