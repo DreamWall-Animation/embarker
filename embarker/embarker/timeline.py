@@ -460,7 +460,7 @@ class TimelineSlider(QtWidgets.QWidget):
         try:
             session = ebc.get_session()
             play_start = (self.start_frame
-                if self.start_frame and not self.remapping else 0)
+                if self.start_frame else 0)
 
             moving_metadata = None
             if self.moving_model :
@@ -636,29 +636,26 @@ def draw_contracted_slider(
     # Draw cursor
     painter.setPen(Qt.PenStyle.NoPen)
     painter.setBrush(CURSORCOLOR)
-    left = get_marker_position(
-        current_frame - display_frame_start,
-        display_frame_count,
-        full_rect.width(),
-        CURSOR_FIXED_WIDTH)
-    painter.drawRect(QtCore.QRect(left, 0, CURSOR_FIXED_WIDTH, SLIDER_HEIGHT))
+    x = (get_rectangles(display_frame_count, frame_width)
+        [current_frame - display_frame_start].left()
+        - CURSOR_FIXED_WIDTH * 0.5)
+    painter.drawRect(QtCore.QRect(x, 0, CURSOR_FIXED_WIDTH, SLIDER_HEIGHT))
 
     # Draw annotations
     painter.setBrush(MARKER_COLOR)
-    for value in ebc.get_session().get_annotated_frames():
-        annotation = ebc.get_session().get_annotation_at(value)
+    for frame in ebc.get_session().get_annotated_frames():
+        annotation = ebc.get_session().get_annotation_at(frame)
         if annotation:
             metadata = annotation.metadata
             painter.setBrush(
                 QtGui.QColor(QtGui.QColor(metadata.get('user_color')) if
                 metadata and metadata.get('user_color') else MARKER_COLOR))
 
-        left = get_marker_position(
-            value - display_frame_start, display_frame_count,
-            full_rect.width(), MARKER_FIXED_WIDTH, True)
+        x = (get_rectangles(display_frame_count, frame_width)
+            [frame - display_frame_start].left() + 0.5 * frame_width)
 
         painter.drawRect(QtCore.QRect(
-            left, MARKER_Y, MARKER_FIXED_WIDTH, SLIDER_HEIGHT))
+            x, MARKER_Y, MARKER_FIXED_WIDTH, SLIDER_HEIGHT))
 
     # Draw moving annotations
     if moving_frame:
@@ -667,19 +664,20 @@ def draw_contracted_slider(
 
     # Draw Highlights
     painter.setBrush(HIGHLIGHT_COLOR)
-    for value in highlighted_values:
-        x = get_marker_position(
-            value - display_frame_start,
-            display_frame_count - display_frame_start,
-            frame_width, HIGHLIGHT_FIXED_WIDTH, True)
-        painter.drawRect(QtCore.QRect(
-            x, HIGHLIGHT_Y, HIGHLIGHT_FIXED_WIDTH, SLIDER_HEIGHT))
+    display_end = display_frame_start + display_frame_count - 1
+    for frame in highlighted_values:
+
+        # Check if frame is displayed
+        if display_frame_start < frame < display_frame_start + display_frame_count:
+            x = (get_rectangles(display_frame_count, frame_width)
+                [frame - display_frame_start].left())
+            painter.drawRect(QtCore.QRect(
+                x, HIGHLIGHT_Y, HIGHLIGHT_FIXED_WIDTH, SLIDER_HEIGHT))
 
     # Draw Brackets
     height = SLIDER_HEIGHT - 1
     play_start = session.playlist.playback_start
     play_end = session.playlist.playback_end
-    display_end = display_frame_start + display_frame_count - 1
     # Dont draw bracket if it takes up all the drawn timeline
     if not play_start == display_frame_start or not play_end == display_end:
         bracket_start = (play_start - display_frame_start) * frame_width
@@ -711,6 +709,10 @@ def draw_bracket(painter: QtGui.QPainter, left, height, out=False):
     triangle.append(topleft)
     painter.drawPolygon(triangle)
 
+
+@lru_cache
+def get_rectangle_center(rect):
+    return rect.left() + 0.5 * rect.right()
 
 @lru_cache
 def get_rectangles(count, width, height=SLIDER_HEIGHT):
