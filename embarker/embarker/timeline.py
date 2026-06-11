@@ -358,8 +358,12 @@ class TimelineSlider(QtWidgets.QWidget):
     def mouseDoubleClickEvent(self, event):
         if event.button() != QtCore.Qt.LeftButton:
             return
-        self.start_frame = None
-        self.end_frame = None
+
+        if self.start_frame or self.end_frame :
+            self.start_frame = None
+            self.end_frame = None
+            return
+
         point = event.position().toPoint()
         frame = int(point.x() / self.width() * self.count())
         container = ebc.get_session().playlist.frames_containers[frame]
