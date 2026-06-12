@@ -423,7 +423,6 @@ class TimelineSlider(QtWidgets.QWidget):
         self.end_frame = session.playlist.playback_end
         self.update()
 
-
     def reset(self):
         self.start_frame = None
         self.end_frame = None
