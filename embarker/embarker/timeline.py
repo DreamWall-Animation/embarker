@@ -323,41 +323,40 @@ class TimelineSlider(QtWidgets.QWidget):
         if event.button() != QtCore.Qt.LeftButton:
             return
 
-        if True:
-            self._mlb_pressed = False
-            self.move_start_bracket = False
-            self.move_end_bracket = False
+        self._mlb_pressed = False
+        self.move_start_bracket = False
+        self.move_end_bracket = False
 
-            if not self.moving_model:
-                self.origin_frame = None
-                return
+        if not self.moving_model:
+            self.origin_frame = None
+            return
 
-            frame = self.get_frame_from_point(event.position().toPoint())
+        frame = self.get_frame_from_point(event.position().toPoint())
 
-            if frame not in ebc.get_session().get_annotated_frames():
-                idx = ebc.get_session().get_annotation_index(frame)
-                ebc.get_session().annotations[idx] = self.moving_model
-                self.update()
-                self.set_value_from_point(event.position().toPoint())
-                ebc.set_frame(frame)
-                self.moving_model = None
-                self.origin_frame = None
-                return
-
-            dialog = MergeAnnotations()
-            dialog.exec_()
-            if dialog.result == 0:
-                self.cancel()
-
-            if dialog.result == 1:
-                self.merge(event.position().toPoint())
-
-            if dialog.result == 2:
-                self.override(event.position().toPoint())
-
+        if frame not in ebc.get_session().get_annotated_frames():
+            idx = ebc.get_session().get_annotation_index(frame)
+            ebc.get_session().annotations[idx] = self.moving_model
+            self.update()
+            self.set_value_from_point(event.position().toPoint())
             ebc.set_frame(frame)
             self.moving_model = None
             self.origin_frame = None
+            return
+
+        dialog = MergeAnnotations()
+        dialog.exec_()
+        if dialog.result == 0:
+            self.cancel()
+
+        if dialog.result == 1:
+            self.merge(event.position().toPoint())
+
+        if dialog.result == 2:
+            self.override(event.position().toPoint())
+
+        ebc.set_frame(frame)
+        self.moving_model = None
+        self.origin_frame = None
 
     def mouseDoubleClickEvent(self, event):
         if event.button() != QtCore.Qt.LeftButton:
@@ -413,9 +412,17 @@ class TimelineSlider(QtWidgets.QWidget):
 
     def zoom(self):
         session = ebc.get_session()
+        print('a')
+        if self.start_frame or self.end_frame:
+            self.start_frame = None
+            self.end_frame = None
+            self.update()
+            return
+
         self.start_frame = session.playlist.playback_start
         self.end_frame = session.playlist.playback_end
         self.update()
+
 
     def reset(self):
         self.start_frame = None
@@ -445,10 +452,10 @@ class TimelineSlider(QtWidgets.QWidget):
         menu = QtWidgets.QMenu()
         frame_exists = frame in annotated_frames
 
-        zoom_action = QtGui.QAction('Zoom into playback range')
+        zoom_action = ebc.get_action('ZoomTimeline')
         menu.addAction(zoom_action)
 
-        reset_action = QtGui.QAction("Reset Timeline")
+        reset_action = ebc.get_action('ResetTimeline')
         menu.addAction(reset_action)
 
         delete_action = QtGui.QAction(f'Delete annotation on frame: {frame}')
@@ -460,12 +467,6 @@ class TimelineSlider(QtWidgets.QWidget):
         recolor_action.setEnabled(frame_exists)
 
         action = menu.exec(self.mapToGlobal(point))
-
-        if action == zoom_action:
-            self.zoom()
-
-        if action == reset_action:
-            self.reset()
 
         if action == delete_action:
             index = ebc.get_session().get_annotation_index(frame)
@@ -686,8 +687,9 @@ def draw_contracted_slider(
         if annotation:
             metadata = annotation.metadata
             painter.setBrush(
-                QtGui.QColor(QtGui.QColor(metadata.get('user_color')) if
-                metadata and metadata.get('user_color') else MARKER_COLOR))
+                QtGui.QColor(QtGui.QColor(metadata.get('user_color'))
+                if metadata and metadata.get('user_color')
+                else MARKER_COLOR))
 
         x = (get_rectangles(display_frame_count, frame_width)
             [frame - display_frame_start].left() + 0.5 * frame_width)
@@ -744,7 +746,8 @@ def draw_zoom_slider(
     # Draw the displayed part
     painter.setBrush(ZOOM_COLOR_ALT)
     painter.drawRect(QtCore.QRect(
-        left + frame_size * display_start, top,
+        left + frame_size * display_start,
+        top,
         frame_size * (display_end - display_start),
         ZOOM_HEIGHT + 1))
 
