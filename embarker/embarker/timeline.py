@@ -412,7 +412,6 @@ class TimelineSlider(QtWidgets.QWidget):
 
     def zoom(self):
         session = ebc.get_session()
-        print('a')
         if self.start_frame or self.end_frame:
             self.start_frame = None
             self.end_frame = None
@@ -422,7 +421,6 @@ class TimelineSlider(QtWidgets.QWidget):
         self.start_frame = session.playlist.playback_start
         self.end_frame = session.playlist.playback_end
         self.update()
-
 
     def reset(self):
         self.start_frame = None
