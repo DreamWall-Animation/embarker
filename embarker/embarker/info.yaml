@@ -1,4 +1,4 @@
-version: [1, 0, 0]  # Version, Feature, Hotfix.
+version: [1, 1, 0]  # Version, Feature, Hotfix.
 release-date: 'not yet'
 build: python-interpreter
 build_datetime: null

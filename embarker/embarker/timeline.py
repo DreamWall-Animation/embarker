@@ -5,7 +5,6 @@ from PySide6 import QtGui, QtCore, QtWidgets
 from PySide6.QtCore import Qt
 
 import embarker.commands as ebc
-from embarker import preferences
 
 
 SLIDER_HEIGHT = 22
@@ -162,7 +161,8 @@ class MergeAnnotations(QtWidgets.QDialog) :
         super().__init__(parent)
         self.setWindowTitle('Conflicting Annotations')
         self.resize(250, 100)
-        label = QtWidgets.QLabel('There already exists an annotation on this frame.')
+        text = 'There already exists an annotation on this frame.'
+        label = QtWidgets.QLabel(text)
         self.merge_button = QtWidgets.QPushButton('Merge')
         self.override_button = QtWidgets.QPushButton('Override')
         self.cancel_button = QtWidgets.QPushButton('Cancel')
@@ -207,7 +207,8 @@ class TimelineSlider(QtWidgets.QWidget):
         self.end_frame = None
 
         self.setSizePolicy(
-            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+            QtWidgets.QSizePolicy.Expanding,
+            QtWidgets.QSizePolicy.Expanding)
         self.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)
         self.setFixedHeight(SLIDER_HEIGHT)
         self.setMouseTracking(True)
@@ -411,14 +412,13 @@ class TimelineSlider(QtWidgets.QWidget):
         return max(self.minimum, min(self.maximum, value + offset))
 
     def zoom(self):
-        session = ebc.get_session()
-        print('a')
         if self.start_frame or self.end_frame:
             self.start_frame = None
             self.end_frame = None
             self.update()
             return
 
+        session = ebc.get_session()
         self.start_frame = session.playlist.playback_start
         self.end_frame = session.playlist.playback_end
         self.update()
@@ -462,7 +462,8 @@ class TimelineSlider(QtWidgets.QWidget):
         menu.addAction(delete_action)
         delete_action.setEnabled(frame_exists)
 
-        recolor_action = QtGui.QAction(f'Change annotation color on frame: {frame}')
+        text = f'Change annotation color on frame: {frame}'
+        recolor_action = QtGui.QAction(text)
         menu.addAction(recolor_action)
         recolor_action.setEnabled(frame_exists)
 
@@ -473,10 +474,10 @@ class TimelineSlider(QtWidgets.QWidget):
             del ebc.get_session().annotations[index]
 
         if action == recolor_action:
-            options = QtWidgets.QColorDialog.ColorDialogOption.DontUseNativeDialog
+            options = QtWidgets.QColorDialog.DontUseNativeDialog
             annotation = ebc.get_session().get_annotation_at(frame)
             default_color = annotation.metadata.get('user_color')
-            default_color = MARKER_COLOR if not default_color else default_color
+            default_color = default_color or MARKER_COLOR
             color = QtWidgets.QColorDialog.getColor(
                 default_color,
                 parent=self,
@@ -581,8 +582,8 @@ def draw_expanded_slider(
     session = ebc.get_session()
     annotations = session.get_annotations_by_frames()
 
-    for i, value_rect in enumerate(
-            get_rectangles(display_frame_count, frame_width)):
+    rectangles = get_rectangles(display_frame_count, frame_width)
+    for i, value_rect in enumerate(rectangles):
 
         # Drawn checkered pattern
         painter.setPen(Qt.PenStyle.NoPen)
@@ -611,9 +612,8 @@ def draw_expanded_slider(
             if annotation :
                 metadata = annotation.metadata
                 painter.setBrush(
-                    QtGui.QColor(QtGui.QColor(metadata.get('user_color'))
-                    if metadata and metadata.get('user_color')
-                    else MARKER_COLOR))
+                    QtGui.QColor(QtGui.QColor(metadata.get('user_color')) if
+                    metadata and metadata.get('user_color') else MARKER_COLOR))
             painter.drawRect(value_rect.adjusted(0, 0, 0, 0))
 
         # Draw highlighted frames
@@ -636,6 +636,7 @@ def draw_expanded_slider(
     play_start = session.playlist.playback_start
     play_end = session.playlist.playback_end
     display_end = display_frame_start + display_frame_count - 1
+
     # Dont draw bracket if it takes up all the drawn timeline
     if not play_start == display_frame_start or not play_end == display_end:
         bracket_start = (play_start - display_frame_start) * frame_width
