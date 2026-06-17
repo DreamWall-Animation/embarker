@@ -426,7 +426,8 @@ class TimelineSlider(QtWidgets.QWidget):
     def reset(self):
         self.start_frame = None
         self.end_frame = None
-        ebc.set_playback_range(0, ebc.get_session().playlist.frames_count - 1)
+        ebc.get_session().playlist.playback_start = None
+        ebc.get_session().playlist.playback_end = None
         self.update()
 
     def merge(self, point):
@@ -716,10 +717,11 @@ def draw_contracted_slider(
 
     # Draw Brackets
     height = SLIDER_HEIGHT - 1
-    play_start = session.playlist.playback_start
-    play_end = session.playlist.playback_end
+    play_start = session.playlist.playback_start or 0
+    play_end = session.playlist.playback_end or session.playlist.frames_count - 1
+
     # Dont draw bracket if it takes up all the drawn timeline
-    if not play_start == display_frame_start or not play_end == display_end:
+    if play_start != display_frame_start or play_end != display_end:
         bracket_start = (play_start - display_frame_start) * frame_width
         bracket_end = (play_end - display_frame_start + 1) * frame_width
         draw_bracket(painter, bracket_start, height, out=False)

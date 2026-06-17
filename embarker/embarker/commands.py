@@ -568,6 +568,7 @@ def remove_current_video():
     frame = get_session().playlist.first_frames[container.id]
     frame = max((frame - 1, 0))
     get_session().playlist.remove_video()
+    get_main_window().timeline.timeline.reset()
     set_frame(frame)
 
 
