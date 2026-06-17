@@ -1,5 +1,5 @@
 import os
-from PySide6 import QtWidgets, QtCore
+from PySide6 import QtWidgets, QtCore, QtGui
 from embarker.api import EmbarkerDockWidget
 import embarker.commands as ebc
 
@@ -39,7 +39,6 @@ class ContainerInfos(EmbarkerDockWidget):
     def resizeEvent(self, event):
         mode = QtWidgets.QHeaderView.ResizeToContents
         self.containers.horizontalHeader().setSectionResizeMode(mode)
-        self.containers.horizontalHeader().setStretchLastSection(True)
         return super().resizeEvent(event)
 
     def update_view(self):
@@ -55,6 +54,8 @@ class ContainerInfos(EmbarkerDockWidget):
         self.containers.selectionModel().blockSignals(False)
         self.containers.blockSignals(False)
         self._current_container_id = container.id
+        self.containers.resizeRowsToContents()
+        self.containers.resizeColumnsToContents()
 
     def container_selected(self, *_):
         index = next(
@@ -65,9 +66,8 @@ class ContainerInfos(EmbarkerDockWidget):
         frame = ebc.get_session().playlist.first_frames[container.id]
         ebc.set_frame(frame)
 
-
 class ContainersModel(QtCore.QAbstractTableModel):
-    HEADERS = 'File', 'Start frame'
+    HEADERS = '', 'File', 'Start frame'
 
     def rowCount(self, *_):
         return len(ebc.get_session().playlist.containers)
@@ -84,15 +84,24 @@ class ContainersModel(QtCore.QAbstractTableModel):
         if not index.isValid():
             return
 
-        if role == QtCore.Qt.DisplayRole:
+        if role == QtCore.Qt.DecorationRole:
             if index.column() == 0:
+                container = ebc.get_session().playlist.containers[index.row()]
+                return container.thumbnail(100, 60)
+
+        if role == QtCore.Qt.SizeHintRole:
+            if index.column() == 0:
+                return QtCore.QSize(100, 60)
+
+        if role == QtCore.Qt.DisplayRole:
+            if index.column() == 1:
                 container = ebc.get_session().playlist.containers[index.row()]
                 return os.path.basename(container.path)
 
-            if index.column() == 1:
+            if index.column() == 2:
                 container = ebc.get_session().playlist.containers[index.row()]
                 return str(ebc.get_session().playlist.first_frames[container.id])
 
         if role == QtCore.Qt.TextAlignmentRole:
-            if index.column() == 1:
+            if index.column() == 2:
                 return QtCore.Qt.AlignCenter

@@ -34,6 +34,7 @@ class VideoContainer:
         self.load_audio()
 
         self._reset_decoder()
+        self._thumbnails = {}
 
     def _reset_decoder(self):
         self.video_frame = None
@@ -43,6 +44,11 @@ class VideoContainer:
 
     def load_audio(self):
         self.audio_samples = extract_audio_samples(self.path, self.duration)
+
+    def thumbnail(self, width, height):
+        return self._thumbnails.setdefault(
+            (width, height),
+            numpy_to_qpixmap(self.decode_frame(0)).scaled(width, height))
 
     @property
     def metadata(self):
@@ -129,6 +135,10 @@ class ImageSequenceContainer:
         full[y:y+spec.height, x:x+spec.width, :] = cropped
 
         return full
+
+    def thumbnail(self, width, height):
+        # TODO
+        return None
 
     def __repr__(self):
         return ''
