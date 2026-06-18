@@ -4,3 +4,4 @@ __pycache__
 */ffmpeg
 ffmpeg
 *.ps1
+.vscode
