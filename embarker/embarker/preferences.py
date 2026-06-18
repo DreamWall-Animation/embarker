@@ -14,7 +14,7 @@ def _get_preferences_filepath():
         return PREFERENCES_FILEPATH
     filename = PREFERENCES_FILENAME or 'embarker.yaml'
     home = os.path.expanduser("~")
-    if platform.system() =='"Windows':
+    if platform.system() == 'Windows':
         return os.path.join(os.getenv("APPDATA"), 'dreamwall', filename)
     elif platform.system() == 'Darwin':
         return os.path.join(
@@ -23,6 +23,7 @@ def _get_preferences_filepath():
     else:
         return os.path.join(
             home, ".config", 'dreamwall', filename)
+
 
 _preferences = []
 
@@ -77,7 +78,7 @@ class Preferences:
             try:
                 data = yaml.safe_load(f)
                 self._write_prefs(data)
-            except BaseException as e:
+            except BaseException:
                 raise ValueError('Fail to load preferences')
 
     def backup(self):
@@ -93,7 +94,7 @@ class Preferences:
                 if data['version'] != PREFERENCES_VERSION:
                     return dict(version=PREFERENCES_VERSION)
                 return data
-        except BaseException as e:
+        except BaseException:
             self.backup()
             print(f'WARNING: moved non-readable prefs: "{self.file_path}"')
             return dict(version=PREFERENCES_VERSION)
