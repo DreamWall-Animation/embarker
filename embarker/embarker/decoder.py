@@ -71,18 +71,14 @@ class VideoContainer:
         return self.video_frame.to_ndarray(format='rgb24')
 
     def _seek(self, frame):
-        """Seek to nearest I-frame at or before frame, reinitialize decoder."""
-        timestamp = int(frame / self.fps / self.stream.time_base)
-        self.container.seek(timestamp, stream=self.stream)
-        self.stream = self.container.streams.video[0]
-        self.decoder = self.container.decode(self.stream)
-        self.video_frame = None
-
-    def decode_frame(self, frame):
-        if frame < self.next_frame or frame - self.next_frame > 30:
-            self._seek(frame)
+        """Ensure decode_next_frame() outputs `frame` arg"""
         while self.next_frame != frame:
             self.video_frame = next(self.decoder)
+
+    def decode_frame(self, frame):
+        if frame < self.next_frame:
+            self._reset_decoder()  # Rewind to frame 0
+        self._seek(frame)
         return self.decode_next_frame()
 
     # def __repr__(self):
