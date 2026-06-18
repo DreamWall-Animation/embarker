@@ -75,9 +75,16 @@ class VideoContainer:
         while self.next_frame != frame:
             self.video_frame = next(self.decoder)
 
+    def _seek_to_keyframe(self, frame):
+        timestamp = int(frame / self.fps / self.stream.time_base)
+        self.container.seek(timestamp, stream=self.stream)
+        self.stream = self.container.streams.video[0]
+        self.decoder = self.container.decode(self.stream)
+        self.video_frame = None
+
     def decode_frame(self, frame):
-        if frame < self.next_frame:
-            self._reset_decoder()  # Rewind to frame 0
+        if frame != self.next_frame:
+            self._seek_to_keyframe(frame)
         self._seek(frame)
         return self.decode_next_frame()
 
