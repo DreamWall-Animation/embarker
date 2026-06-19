@@ -41,4 +41,3 @@ class ScrollMessageBox(QtWidgets.QMessageBox):
 
     def set_role(self, role):
         self.clicked_role = role
-

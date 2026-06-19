@@ -35,9 +35,10 @@ class AutoSave(QtCore.QObject):
 
     def auto_save(self):
         if ebc.get_session().filepath:
-            directory = (preferences.get('autosave_filepath')
-                if preferences.get('autosave_filepath')
-                else os.path.dirname(ebc.get_session().filepath))
+            directory = (
+                preferences.get('autosave_filepath') if
+                preferences.get('autosave_filepath') else
+                os.path.dirname(ebc.get_session().filepath))
             filename = os.path.basename(ebc.get_session().filepath)
             basename = os.path.splitext(filename)[0]
             filepath = get_autosave_incremental_filename(directory, basename)
@@ -72,9 +73,10 @@ def get_documents_folder():
 
 
 def get_default_autosave_filepath():
-    directory = (f'{get_documents_folder()}/Embarker/autosaves'
-        if not preferences.get('autosave_filepath')
-        else preferences.get('autosave_filepath'))
+    directory = (
+        f'{get_documents_folder()}/Embarker/autosaves' if
+        not preferences.get('autosave_filepath') else
+        preferences.get('autosave_filepath'))
     return get_autosave_incremental_filename(directory, DEFAULT_FILENAME)
 
 

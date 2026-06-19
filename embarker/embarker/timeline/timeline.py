@@ -146,7 +146,6 @@ class MergeAnnotations(QtWidgets.QDialog):
         self.merge_button = QtWidgets.QPushButton('Merge')
         self.override_button = QtWidgets.QPushButton('Override')
         self.cancel_button = QtWidgets.QPushButton('Cancel')
-        layout = QtWidgets.QVBoxLayout()
         self.result = 0
 
         button_layout = QtWidgets.QHBoxLayout()
@@ -158,11 +157,9 @@ class MergeAnnotations(QtWidgets.QDialog):
         self.merge_button.clicked.connect(partial(self.set_result, 1))
         self.override_button.clicked.connect(partial(self.set_result, 2))
 
+        layout = QtWidgets.QVBoxLayout(self)
         layout.addWidget(label)
         layout.addLayout(button_layout)
-
-        self.setLayout(layout)
-        self.show()
 
     def set_result(self, result):
         self.result = result
@@ -199,7 +196,7 @@ class TimelineSlider(QtWidgets.QWidget):
 
     @property
     def maximum(self):
-        if self.end_frame :
+        if self.end_frame:
             return self.end_frame
         return ebc.get_session().playlist.frames_count - 1
 
@@ -282,8 +279,8 @@ class TimelineSlider(QtWidgets.QWidget):
         session = ebc.get_session()
         frame = self.get_frame_from_point(event.position().toPoint())
         annoted_frames = ebc.get_session().get_annotated_frames()
-        bracket_frame = frame in [session.playlist.playback_start,
-            session.playlist.playback_end]
+        bracket_frame = frame in [
+            session.playlist.playback_start, session.playlist.playback_end]
 
         if frame in annoted_frames and (ctrl_pressed() or shift_pressed()):
             QtWidgets.QApplication.setOverrideCursor(
@@ -291,7 +288,7 @@ class TimelineSlider(QtWidgets.QWidget):
         elif bracket_frame and not ctrl_pressed() and not shift_pressed():
             QtWidgets.QApplication.setOverrideCursor(
                 QtCore.Qt.CursorShape.SizeHorCursor)
-        else :
+        else:
             QtWidgets.QApplication.restoreOverrideCursor()
 
         if not self.maximum:
@@ -299,9 +296,9 @@ class TimelineSlider(QtWidgets.QWidget):
         if self._mlb_pressed:
             point = event.position().toPoint()
             self.set_value_from_point(point)
-            if self.move_start_bracket :
+            if self.move_start_bracket:
                 ebc.set_playback_start(frame)
-            elif self.move_end_bracket :
+            elif self.move_end_bracket:
                 ebc.set_playback_end(frame)
 
         if self._mmb_pressed:
@@ -365,7 +362,7 @@ class TimelineSlider(QtWidgets.QWidget):
         if event.button() != QtCore.Qt.LeftButton:
             return
 
-        if self.start_frame or self.end_frame :
+        if self.start_frame or self.end_frame:
             self.start_frame = None
             self.end_frame = None
             self.update()
@@ -410,7 +407,7 @@ class TimelineSlider(QtWidgets.QWidget):
 
     def get_frame_from_point(self, point):
         offset = self.start_frame if self.start_frame else 0
-        value =  int(point.x() / self.width() * self.count())
+        value = int(point.x() / self.width() * self.count())
         return max(self.minimum, min(self.maximum, value + offset))
 
     def zoom(self):
@@ -493,11 +490,10 @@ class TimelineSlider(QtWidgets.QWidget):
         painter = QtGui.QPainter(self)
         try:
             session = ebc.get_session()
-            play_start = (self.start_frame
-                if self.start_frame else 0)
+            play_start = self.start_frame or 0
 
             moving_metadata = None
-            if self.moving_model :
+            if self.moving_model:
                 metadata_color = self.moving_model.metadata.get('user_color')
                 moving_metadata = metadata_color
                 if not moving_metadata:
