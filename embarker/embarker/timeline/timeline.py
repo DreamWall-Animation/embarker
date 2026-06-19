@@ -5,6 +5,7 @@ from PySide6 import QtGui, QtCore, QtWidgets
 from PySide6.QtCore import Qt
 
 import embarker.commands as ebc
+from embarker import preferences
 
 from embarker.timeline.draw import (SLIDER_HEIGHT, MARKER_COLOR,
                                     draw_slider, draw_zoom_slider)
@@ -499,9 +500,16 @@ class TimelineSlider(QtWidgets.QWidget):
                 if not moving_metadata:
                     moving_metadata = MARKER_COLOR.name()
 
-            self.thumbnails = {}
-            for container in ebc.get_session().playlist.containers:
-                pass
+            if preferences.get('TimelineDrawStyle') == 'Thumbnails':
+                self.thumbnails = {}
+                count = 0
+                for container in ebc.get_session().playlist.containers:
+                    # contains pixmap and width
+                    self.thumbnails[count] = container.thumbnail(
+                        SLIDER_HEIGHT, 0)
+                    count += container.length
+
+            print(self.thumbnails)
 
             draw_slider(
                 painter,

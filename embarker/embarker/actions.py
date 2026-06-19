@@ -469,7 +469,7 @@ def get_default_actions(mainwindow):
             'group': None,
             'method': (mainwindow.preferences_window.preferences['Timeline'].
                        change_style),
-            'checkable': True,
+            'checkable': False,
             'shortcut': None,
         },
         {
