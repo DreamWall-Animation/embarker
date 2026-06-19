@@ -216,7 +216,7 @@ class TimelineSlider(QtWidgets.QWidget):
 
     @property
     def maximum(self):
-        if self.end_frame :
+        if self.end_frame:
             return self.end_frame
         return ebc.get_session().playlist.frames_count - 1
 
@@ -277,8 +277,8 @@ class TimelineSlider(QtWidgets.QWidget):
         session = ebc.get_session()
         frame = self.get_frame_from_point(event.position().toPoint())
         annoted_frames = ebc.get_session().get_annotated_frames()
-        bracket_frame = frame in [session.playlist.playback_start,
-            session.playlist.playback_end]
+        bracket_frame = frame in [
+            session.playlist.playback_start, session.playlist.playback_end]
 
         if frame in annoted_frames and (ctrl_pressed() or shift_pressed()):
             QtWidgets.QApplication.setOverrideCursor(
@@ -286,7 +286,7 @@ class TimelineSlider(QtWidgets.QWidget):
         elif bracket_frame and not ctrl_pressed() and not shift_pressed():
             QtWidgets.QApplication.setOverrideCursor(
                 QtCore.Qt.CursorShape.SizeHorCursor)
-        else :
+        else:
             QtWidgets.QApplication.restoreOverrideCursor()
 
         if not self.maximum:
@@ -294,9 +294,9 @@ class TimelineSlider(QtWidgets.QWidget):
         if self._mlb_pressed:
             point = event.position().toPoint()
             self.set_value_from_point(point)
-            if self.move_start_bracket :
+            if self.move_start_bracket:
                 ebc.set_playback_start(frame)
-            elif self.move_end_bracket :
+            elif self.move_end_bracket:
                 ebc.set_playback_end(frame)
 
         if self._mmb_pressed:
@@ -360,7 +360,7 @@ class TimelineSlider(QtWidgets.QWidget):
         if event.button() != QtCore.Qt.LeftButton:
             return
 
-        if self.start_frame or self.end_frame :
+        if self.start_frame or self.end_frame:
             self.start_frame = None
             self.end_frame = None
             self.update()
@@ -405,7 +405,7 @@ class TimelineSlider(QtWidgets.QWidget):
 
     def get_frame_from_point(self, point):
         offset = self.start_frame if self.start_frame else 0
-        value =  int(point.x() / self.width() * self.count())
+        value = int(point.x() / self.width() * self.count())
         return max(self.minimum, min(self.maximum, value + offset))
 
     def zoom(self):
@@ -488,11 +488,10 @@ class TimelineSlider(QtWidgets.QWidget):
         painter = QtGui.QPainter(self)
         try:
             session = ebc.get_session()
-            play_start = (self.start_frame
-                if self.start_frame else 0)
+            play_start = self.start_frame or 0
 
             moving_metadata = None
-            if self.moving_model :
+            if self.moving_model:
                 metadata_color = self.moving_model.metadata.get('user_color')
                 moving_metadata = metadata_color
                 if not moving_metadata:
@@ -530,8 +529,8 @@ def draw_slider(
         display_frame_count: int,
         display_frame_start: int,
         current_frame: int,
-        cached_values: list[int], #highlighte values
-        moving_frame: str|None,
+        cached_values: list[int],
+        moving_frame: str | None,
         separators: list[int]):
 
     if display_frame_count == 0:
@@ -543,26 +542,26 @@ def draw_slider(
 
     if frame_width > 4:
         draw_expanded_slider(
-            painter = painter,
-            frame_width = frame_width,
-            display_frame_start = display_frame_start,
-            display_frame_count = display_frame_count,
-            current_frame = current_frame,
-            highlighted_values = cached_values,
-            moving_frame = moving_frame,
-            separators = separators
+            painter=painter,
+            frame_width=frame_width,
+            display_frame_start=display_frame_start,
+            display_frame_count=display_frame_count,
+            current_frame=current_frame,
+            highlighted_values=cached_values,
+            moving_frame=moving_frame,
+            separators=separators
         )
     else:
         draw_contracted_slider(
             painter=painter,
-            full_rect= full_rect,
-            frame_width = frame_width,
-            display_frame_start = display_frame_start,
-            display_frame_count = display_frame_count,
-            current_frame = current_frame,
-            highlighted_values = cached_values,
-            moving_frame = moving_frame,
-            separators = separators
+            full_rect=full_rect,
+            frame_width=frame_width,
+            display_frame_start=display_frame_start,
+            display_frame_count=display_frame_count,
+            current_frame=current_frame,
+            highlighted_values=cached_values,
+            moving_frame=moving_frame,
+            separators=separators
         )
 
 
@@ -573,7 +572,7 @@ def draw_expanded_slider(
         display_frame_count: int,
         current_frame: int,
         highlighted_values: list[int],
-        moving_frame: str|None,
+        moving_frame: str | None,
         separators: list[int]):
 
     session = ebc.get_session()
@@ -606,11 +605,11 @@ def draw_expanded_slider(
         # Draw marker frames
         if absolute_frame in annotations:
             annotation = ebc.get_session().get_annotation_at(absolute_frame)
-            if annotation :
+            if annotation:
                 metadata = annotation.metadata
-                painter.setBrush(
-                    QtGui.QColor(QtGui.QColor(metadata.get('user_color')) if
-                    metadata and metadata.get('user_color') else MARKER_COLOR))
+                painter.setBrush(QtGui.QColor(
+                    metadata.get('user_color')) if
+                    metadata and metadata.get('user_color') else MARKER_COLOR)
             painter.drawRect(value_rect.adjusted(0, 0, 0, 0))
 
         # Draw highlighted frames
@@ -650,7 +649,7 @@ def draw_contracted_slider(
         display_frame_count: int,
         current_frame: int,
         highlighted_values: list[int],
-        moving_frame: str|None,
+        moving_frame: str | None,
         separators: list[int]):
 
     session = ebc.get_session()
@@ -673,9 +672,9 @@ def draw_contracted_slider(
     # Draw cursor
     painter.setPen(Qt.PenStyle.NoPen)
     painter.setBrush(CURSORCOLOR)
-    x = (get_rectangles(display_frame_count, frame_width)
-        [current_frame - display_frame_start].left()
-        - CURSOR_FIXED_WIDTH * 0.5)
+    index = current_frame - display_frame_start
+    rect = get_rectangles(display_frame_count, frame_width)[index]
+    x = rect.left() - CURSOR_FIXED_WIDTH * 0.5
     painter.drawRect(QtCore.QRect(x, 0, CURSOR_FIXED_WIDTH, SLIDER_HEIGHT))
 
     # Draw annotations
@@ -684,13 +683,12 @@ def draw_contracted_slider(
         annotation = ebc.get_session().get_annotation_at(frame)
         if annotation:
             metadata = annotation.metadata
-            painter.setBrush(
-                QtGui.QColor(QtGui.QColor(metadata.get('user_color'))
-                if metadata and metadata.get('user_color')
-                else MARKER_COLOR))
-
-        x = (get_rectangles(display_frame_count, frame_width)
-            [frame - display_frame_start].left() + 0.5 * frame_width)
+            painter.setBrush(QtGui.QColor(
+                metadata.get('user_color') if metadata and
+                metadata.get('user_color') else MARKER_COLOR))
+        index = frame - display_frame_start
+        rect = get_rectangles(display_frame_count, frame_width)[index]
+        x = rect.left() + 0.5 * frame_width
 
         painter.drawRect(QtCore.QRect(
             x, MARKER_Y, MARKER_FIXED_WIDTH, SLIDER_HEIGHT))
@@ -707,15 +705,16 @@ def draw_contracted_slider(
 
         # Check if frame is displayed
         if display_frame_start < frame < display_end:
-            x = (get_rectangles(display_frame_count, frame_width)
-                [frame - display_frame_start].left())
+            idx = frame - display_frame_start
+            x = get_rectangles(display_frame_count, frame_width)[idx].left()
             painter.drawRect(QtCore.QRect(
                 x, HIGHLIGHT_Y, HIGHLIGHT_FIXED_WIDTH, SLIDER_HEIGHT))
 
     # Draw Brackets
     height = SLIDER_HEIGHT - 1
     play_start = session.playlist.playback_start or 0
-    play_end = session.playlist.playback_end or session.playlist.frames_count - 1
+    play_end = (
+        session.playlist.playback_end or session.playlist.frames_count - 1)
 
     # Dont draw bracket if it takes up all the drawn timeline
     if play_start != display_frame_start or play_end != display_end:
