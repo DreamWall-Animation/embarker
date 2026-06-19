@@ -156,8 +156,8 @@ class PlaybackOptionsWidget(QtWidgets.QWidget):
         self.current_frame.blockSignals(False)
 
 
-class MergeAnnotations(QtWidgets.QDialog) :
-    def __init__(self, parent=None) :
+class MergeAnnotations(QtWidgets.QDialog):
+    def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle('Conflicting Annotations')
         self.resize(250, 100)
@@ -166,7 +166,6 @@ class MergeAnnotations(QtWidgets.QDialog) :
         self.merge_button = QtWidgets.QPushButton('Merge')
         self.override_button = QtWidgets.QPushButton('Override')
         self.cancel_button = QtWidgets.QPushButton('Cancel')
-        layout = QtWidgets.QVBoxLayout()
         self.result = 0
 
         button_layout = QtWidgets.QHBoxLayout()
@@ -178,11 +177,9 @@ class MergeAnnotations(QtWidgets.QDialog) :
         self.merge_button.clicked.connect(partial(self.set_result, 1))
         self.override_button.clicked.connect(partial(self.set_result, 2))
 
+        layout = QtWidgets.QVBoxLayout(self)
         layout.addWidget(label)
         layout.addLayout(button_layout)
-
-        self.setLayout(layout)
-        self.show()
 
     def set_result(self, result):
         self.result = result
