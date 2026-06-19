@@ -212,6 +212,7 @@ class MediaPlayer(QOpenGLWidget):
         _, last = self.playlist.get_playback_range()
         if last == frame:
             self.playback_timer.stop()
+            self.playing_state_changed.emit(False)
             self.audio_player.pause()
             if self.playlist.playback_loop:
                 interval = self._get_current_interval()
