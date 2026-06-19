@@ -213,11 +213,16 @@ class TimelineSlider(QtWidgets.QWidget):
 
     def event(self, event):
         if event.type() == QtCore.QEvent.ToolTip:
+            # get focus to disable
             position = event.pos().toPointF()
             frame = self.get_frame_from_point(position)
             ctr_idx = ebc.get_session().playlist.get_container_index(frame)
-            container = ebc.get_session().playlist.containers[ctr_idx]
-            thumbnail = container.thumbnail(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT)
+            # Create a copy of the container, to not break reading head
+            cur_container = ebc.get_session().playlist.containers[ctr_idx]
+            file_path = cur_container.path
+            thumbnail_container = cur_container.__class__(file_path)
+            thumbnail = thumbnail_container.thumbnail(
+                THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT, frame)
             offset = QtCore.QPoint(-THUMBNAIL_WIDTH / 2, -THUMBNAIL_HEIGHT - 9)
             global_pos = event.globalPos() + offset
 

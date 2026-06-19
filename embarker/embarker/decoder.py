@@ -45,7 +45,7 @@ class VideoContainer:
     def load_audio(self):
         self.audio_samples = extract_audio_samples(self.path, self.duration)
 
-    def thumbnail(self, width, height):
+    def thumbnail(self, width, height, _):
         return self._thumbnails.setdefault(
             (width, height),
             numpy_to_qpixmap(self.decode_frame(0)).scaled(width, height))
@@ -136,9 +136,11 @@ class ImageSequenceContainer:
 
         return full
 
-    def thumbnail(self, width, height):
-        # TODO
-        return None
+    def thumbnail(self, width, height, frame=0):
+        return self._thumbnails.setdefault(
+            (width, height),
+            numpy_to_qpixmap(self.decode_frame(frame)).scaled(width, height))
+
 
     def __repr__(self):
         return ''
