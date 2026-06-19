@@ -451,6 +451,7 @@ def _set_next_marked_frames(marked_frames):
         default=marked_frames[0])
     get_main_window().media_player.set_frame(frame)
 
+
 def _set_previous_marked_frames(marked_frames):
     if not marked_frames:
         return
