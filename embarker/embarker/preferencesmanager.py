@@ -12,8 +12,10 @@ class PreferencesWindow(QtWidgets.QWidget):
         self.setWindowTitle('Preferences')
 
         self.preferences = {
-            'Autosave': AutosaveWidget(),
-            'User Color': UserColorWidget()}
+            'Autosave': AutosaveWidget(self),
+            'User Color': UserColorWidget(self),
+            'Timeline': TimelineWidget(self),
+        }
 
         self.categories = PreferencesCategoriesModel(
             list(self.preferences.keys()))
@@ -191,3 +193,30 @@ class UserColorWidget(QtWidgets.QWidget):
         self.user_color = color
         self.user_color.setAlpha(255)
         self.refresh_color()
+
+
+class TimelineWidget(QtWidgets.QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.timeline_style = ('Thumbnails'
+                               if preferences.get('TimelineDrawStyle')
+                               else None)
+
+        label = QtWidgets.QLabel('Timeline Draw Style')
+        self.checkbox = QtWidgets.QCheckBox()
+        if self.timeline_style:
+            self.checkbox.setChecked(True)
+        self.checkbox.clicked.connect(lambda _: self.change_style())
+
+        layout = QtWidgets.QHBoxLayout(self)
+        layout.addWidget(label)
+        layout.addWidget(self.checkbox)
+
+    def change_style(self):
+        if preferences.get('TimelineDrawStyle'):
+            self.timeline_style = None
+            preferences.delete('TimelineDrawStyle')
+        else:
+            self.timeline_style = 'Thumbnails'
+            preferences.set('TimelineDrawStyle', 'Thumbnails')
+        self.checkbox.setChecked(bool(preferences.get('TimelineDrawStyle')))

@@ -306,7 +306,8 @@ class EmbarkerMainWindow(QtWidgets.QMainWindow):
         file_menu.addSeparator()
         file_menu.addAction(self.actionregistry.get('OpenVideos'))
         file_menu.addAction(self.actionregistry.get('ImportPlaylist'))
-        file_menu.addAction(self.actionregistry.get('ImportSessionAnnotations'))
+        file_menu.addAction(self.actionregistry.get(
+            'ImportSessionAnnotations'))
         file_menu.addSeparator()
         file_menu.addAction(self.actionregistry.get('SaveSession'))
         file_menu.addAction(self.actionregistry.get('SaveSessionAs'))
@@ -356,6 +357,7 @@ class EmbarkerMainWindow(QtWidgets.QMainWindow):
         view = QtWidgets.QMenu('&View')
         view.addAction(self.actionregistry.get('ResetCanvas'))
         view.addAction(self.actionregistry.get('ResetTimeline'))
+        view.addAction(self.actionregistry.get('TimelineDrawStyle'))
         view.addSeparator()
         view.addAction(self.actionregistry.get('ZoomTimeline'))
         view.addAction(self.actionregistry.get('ToggleOnionSkin'))
@@ -600,6 +602,7 @@ class EmbarkerMainWindow(QtWidgets.QMainWindow):
     def quit(self):
         self.save_tools_states()
 
+
 class DocksMenu(QtWidgets.QMenu):
     def __init__(self, mainwindow, parent=None):
         super().__init__('Panels', parent)
@@ -633,7 +636,8 @@ class ToolbarMenu(QtWidgets.QMenu):
 
 class VolumeSlider(QtWidgets.QWidget):
     def __init__(self, parent=None):
-        flags = QtCore.Qt.WindowType.Popup | QtCore.Qt.FramelessWindowHint | QtCore.Qt.Window
+        flags = (QtCore.Qt.WindowType.Popup |
+                 QtCore.Qt.FramelessWindowHint | QtCore.Qt.Window)
         super().__init__(parent, flags)
         self.slider = QtWidgets.QSlider()
         self.slider.setMinimum(0)

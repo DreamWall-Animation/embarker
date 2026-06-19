@@ -10,8 +10,7 @@ from embarker.timeline.draw import (SLIDER_HEIGHT, MARKER_COLOR,
                                     draw_slider, draw_zoom_slider)
 
 
-THUMBNAIL_HEIGHT = 300
-THUMBNAIL_WIDTH = THUMBNAIL_HEIGHT * 16 / 9
+THUMBNAIL_HEIGHT = 200
 
 
 def ctrl_pressed():
@@ -182,6 +181,7 @@ class TimelineSlider(QtWidgets.QWidget):
         self.start_frame = None
         self.end_frame = None
         self.thumbnail = None
+        self.thumbnails = dict()  # hold resized pixmap for optimisation
 
         self.setSizePolicy(
             QtWidgets.QSizePolicy.Expanding,
@@ -212,28 +212,26 @@ class TimelineSlider(QtWidgets.QWidget):
         return ebc.get_session().playlist.frames_count
 
     def event(self, event):
-        if event.type() == QtCore.QEvent.ToolTip:
-            # get focus to disable
-            position = event.pos().toPointF()
-            frame = self.get_frame_from_point(position)
-            ctr_idx = ebc.get_session().playlist.get_container_index(frame)
-            # Create a copy of the container, to not break reading head
-            cur_container = ebc.get_session().playlist.containers[ctr_idx]
-            file_path = cur_container.path
-            thumbnail_container = cur_container.__class__(file_path)
-            thumbnail = thumbnail_container.thumbnail(
-                THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT, frame)
-            offset = QtCore.QPoint(-THUMBNAIL_WIDTH / 2, -THUMBNAIL_HEIGHT - 9)
-            global_pos = event.globalPos() + offset
+        if event.type() != QtCore.QEvent.ToolTip:
+            self.thumbnail = None
+            return super().event(event)
 
-            self.thumbnail = QtWidgets.QLabel()
-            self.thumbnail.setPixmap(thumbnail)
-            self.thumbnail.setWindowFlag(Qt.ToolTip | Qt.FramelessWindowHint)
-            self.thumbnail.move(global_pos)
-            self.thumbnail.adjustSize()
-            self.thumbnail.show()
+        # get focus to disable
+        position = event.pos().toPointF()
+        frame = self.get_frame_from_point(position)
+        ctr_idx = ebc.get_session().playlist.get_container_index(frame)
+        # Create a copy of the container, to not break reading head
+        cur_container = ebc.get_session().playlist.containers[ctr_idx]
+        thumbnail, width = cur_container.thumbnail(
+            THUMBNAIL_HEIGHT, frame)
+        offset = QtCore.QPoint(-width / 2, -THUMBNAIL_HEIGHT - 9)
+        global_pos = event.globalPos() + offset
 
-        return super().event(event)
+        self.thumbnail = QtWidgets.QLabel()
+        self.thumbnail.setPixmap(thumbnail)
+        self.thumbnail.setWindowFlag(Qt.ToolTip | Qt.FramelessWindowHint)
+        self.thumbnail.move(global_pos)
+        self.thumbnail.show()
 
     def leftClicEvent(self, event):
         session = ebc.get_session()
@@ -278,9 +276,6 @@ class TimelineSlider(QtWidgets.QWidget):
         self.update()
 
     def mouseMoveEvent(self, event):
-        if self.thumbnail:
-            self.thumbnail.hide()
-            self.thumbnail = None
         session = ebc.get_session()
         frame = self.get_frame_from_point(event.position().toPoint())
         annoted_frames = ebc.get_session().get_annotated_frames()
@@ -504,6 +499,10 @@ class TimelineSlider(QtWidgets.QWidget):
                 if not moving_metadata:
                     moving_metadata = MARKER_COLOR.name()
 
+            self.thumbnails = {}
+            for container in ebc.get_session().playlist.containers:
+                pass
+
             draw_slider(
                 painter,
                 self.rect(),
@@ -515,6 +514,7 @@ class TimelineSlider(QtWidgets.QWidget):
                 list(session.playlist.first_frames.values())
             )
 
+            # draw mini slider for zoom preview
             if play_start or self.end_frame:
                 draw_zoom_slider(
                     painter,

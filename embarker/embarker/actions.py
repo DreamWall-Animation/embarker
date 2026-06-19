@@ -462,6 +462,17 @@ def get_default_actions(mainwindow):
             'shortcut': None,
         },
         {
+            'id': 'TimelineDrawStyle',
+            'text': 'Timeline Draw Style',
+            'category': 'View',
+            'icon': None,
+            'group': None,
+            'method': (mainwindow.preferences_window.preferences['Timeline'].
+                       change_style),
+            'checkable': True,
+            'shortcut': None,
+        },
+        {
             'id': 'ToggleOnionSkin',
             'text': 'Onion skin',
             'category': 'View',
