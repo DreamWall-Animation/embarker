@@ -2,6 +2,7 @@ import os
 import yaml
 import shutil
 import platform
+import traceback
 
 
 PREFERENCES_FILEPATH = os.getenv('EMBARKER_PREFERENCES_FILEPATH')
@@ -33,9 +34,6 @@ def get(key, default=''):
 
 
 def set(key, value):
-    dir_ = os.path.dirname(_preferences[0].file_path)
-    if not os.path.exists(dir_):
-        os.makedirs(dir_)
     prefs = _preferences[0].get_all()
     prefs[key] = value
     _preferences[0]._write_prefs(prefs)
@@ -67,8 +65,15 @@ class Preferences:
         _preferences.append(self)
 
     def _write_prefs(self, data, filepath=None):
+        prefs_dir_path = os.path.dirname(self.file_path)
+        if not os.path.exists(prefs_dir_path):
+            os.makedirs(prefs_dir_path)
+
         with open(filepath or self.file_path, 'w') as f:
-            return yaml.safe_dump(data, f)
+            return yaml.safe_dump(
+                data, f,
+                allow_unicode=True,
+                default_flow_style=False)
 
     def export(self, filepath):
         self._write_prefs(self.get_all(), filepath)
@@ -79,6 +84,7 @@ class Preferences:
                 data = yaml.safe_load(f)
                 self._write_prefs(data)
             except BaseException:
+                print(traceback.format_exc())
                 raise ValueError('Fail to load preferences')
 
     def backup(self):
@@ -103,9 +109,6 @@ class Preferences:
         return self.get_all().get(key, default)
 
     def set(self, key, value):
-        dir_ = os.path.dirname(self.file_path)
-        if not os.path.exists(dir_):
-            os.makedirs(dir_)
         prefs = self.get_all()
         prefs[key] = value
         self._write_prefs(prefs)
