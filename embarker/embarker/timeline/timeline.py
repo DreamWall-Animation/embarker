@@ -508,8 +508,8 @@ class TimelineSlider(QtWidgets.QWidget):
                     self.thumbnails[count] = container.thumbnail(
                         SLIDER_HEIGHT, 0)
                     count += container.length
-
-            print(self.thumbnails)
+            else:
+                self.thumbnails = None
 
             draw_slider(
                 painter,
@@ -519,7 +519,8 @@ class TimelineSlider(QtWidgets.QWidget):
                 session.playlist.frame,
                 session.playlist.frames_images.keys(),
                 moving_metadata,
-                list(session.playlist.first_frames.values())
+                list(session.playlist.first_frames.values()),
+                self.thumbnails,
             )
 
             # draw mini slider for zoom preview

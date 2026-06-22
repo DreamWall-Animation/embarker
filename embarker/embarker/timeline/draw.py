@@ -39,9 +39,10 @@ def draw_slider(
         display_frame_count: int,
         display_frame_start: int,
         current_frame: int,
-        cached_values: list[int],  # highlighte values
+        cached_values: list[int],  # highlighted values
         moving_frame: str | None,
-        separators: list[int]):
+        separators: list[int],
+        thumbnails: dict):
 
     if display_frame_count == 0:
         painter.drawRect(full_rect)
@@ -53,13 +54,15 @@ def draw_slider(
     if frame_width > 4:
         draw_expanded_slider(
             painter=painter,
+            full_rect=full_rect,
             frame_width=frame_width,
             display_frame_start=display_frame_start,
             display_frame_count=display_frame_count,
             current_frame=current_frame,
             highlighted_values=cached_values,
             moving_frame=moving_frame,
-            separators=separators
+            separators=separators,
+            thumbnails=thumbnails
         )
     else:
         draw_contracted_slider(
@@ -71,31 +74,53 @@ def draw_slider(
             current_frame=current_frame,
             highlighted_values=cached_values,
             moving_frame=moving_frame,
-            separators=separators
+            separators=separators,
+            thumbnails=thumbnails
         )
 
 
 def draw_expanded_slider(
         painter: QtGui.QPainter,
+        full_rect: QtCore.QRect,
         frame_width: int,
         display_frame_start: int,
         display_frame_count: int,
         current_frame: int,
         highlighted_values: list[int],
         moving_frame: str | None,
-        separators: list[int]):
+        separators: list[int],
+        thumbnails: dict):
 
     session = ebc.get_session()
     annotations = session.get_annotations_by_frames()
+
+    if thumbnails:
+        start = 0
+        separators.append(display_frame_count)
+        for i, separator in enumerate(separators[:-1]):
+            pixmap = thumbnails[separator]
+            brush = QtGui.QBrush()
+            brush.setTexture(pixmap[0])
+            painter.setBrush(brush)
+
+            separator -= display_frame_start
+            left_rect = frame_width * separator
+            right_rect = frame_width * (separators[i+1] - start)
+            print(left_rect, right_rect)
+            rect = QtCore.QRectF(
+                left_rect, full_rect.top(), right_rect, full_rect.height())
+            painter.drawRect(rect)
+            start = separator
 
     rectangles = get_rectangles(display_frame_count, frame_width)
     for i, value_rect in enumerate(rectangles):
 
         # Drawn checkered pattern
-        painter.setPen(Qt.PenStyle.NoPen)
-        color = BG_COLOR if i % 2 else BG_COLOR_ALT
-        painter.setBrush(color)
-        painter.drawRect(value_rect)
+        if not thumbnails:
+            painter.setPen(Qt.PenStyle.NoPen)
+            color = BG_COLOR if i % 2 else BG_COLOR_ALT
+            painter.setBrush(color)
+            painter.drawRect(value_rect)
 
         # Draw current frame
         absolute_frame = i + display_frame_start
@@ -161,24 +186,34 @@ def draw_contracted_slider(
         current_frame: int,
         highlighted_values: list[int],
         moving_frame: str | None,
-        separators: list[int]):
+        separators: list[int],
+        thumbnails: dict):
 
     session = ebc.get_session()
     painter.setPen(Qt.PenStyle.NoPen)
 
-    # Draw timeline, alternate color by shots
+    # Draw timeline, alternate color by shots, or use thumbnails
+
     start = 0
-    for i, separator in enumerate(separators):
-        separator -= display_frame_start
-        if separator:
+    separators.append(display_frame_count)
+    for i, separator in enumerate(separators[:-1]):
+        if thumbnails:
+            pixmap = thumbnails[separator]
+            brush = QtGui.QBrush()
+            brush.setTexture(pixmap[0])
+            painter.setBrush(brush)
+        else:
             color = BG_COLOR if i % 2 == 0 else BG_COLOR_ALT
-            left_rect = frame_width * start
-            right_rect = frame_width * (separator - start)
-            rect = QtCore.QRectF(
-                left_rect, full_rect.top(), right_rect, full_rect.height())
             painter.setBrush(color)
-            painter.drawRect(rect)
-            start = separator
+
+        separator -= display_frame_start
+        left_rect = frame_width * separator
+        right_rect = frame_width * (separators[i+1] - start)
+        print(left_rect, right_rect)
+        rect = QtCore.QRectF(
+            left_rect, full_rect.top(), right_rect, full_rect.height())
+        painter.drawRect(rect)
+        start = separator
 
     # Draw cursor
     painter.setPen(Qt.PenStyle.NoPen)
