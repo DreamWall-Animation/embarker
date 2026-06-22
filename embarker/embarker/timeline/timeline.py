@@ -2,7 +2,6 @@
 from functools import partial
 
 from PySide6 import QtGui, QtCore, QtWidgets
-from PySide6.QtCore import Qt
 
 import embarker.commands as ebc
 from embarker import preferences
@@ -225,12 +224,13 @@ class TimelineSlider(QtWidgets.QWidget):
         cur_container = ebc.get_session().playlist.containers[ctr_idx]
         thumbnail, width = cur_container.thumbnail(
             THUMBNAIL_HEIGHT, frame)
-        offset = QtCore.QPoint(-width / 2, -THUMBNAIL_HEIGHT - 9)
+        offset = QtCore.QPoint(-width / 2, -THUMBNAIL_HEIGHT - 14)
         global_pos = event.globalPos() + offset
 
         self.thumbnail = QtWidgets.QLabel()
         self.thumbnail.setPixmap(thumbnail)
-        self.thumbnail.setWindowFlag(Qt.ToolTip | Qt.FramelessWindowHint)
+        self.thumbnail.setWindowFlag(
+            QtCore.Qt.ToolTip | QtCore.Qt.FramelessWindowHint)
         self.thumbnail.move(global_pos)
         self.thumbnail.show()
 

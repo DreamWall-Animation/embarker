@@ -106,7 +106,6 @@ def draw_expanded_slider(
             separator -= display_frame_start
             left_rect = frame_width * separator
             right_rect = frame_width * (separators[i+1] - start)
-            print(left_rect, right_rect)
             rect = QtCore.QRectF(
                 left_rect, full_rect.top(), right_rect, full_rect.height())
             painter.drawRect(rect)
@@ -114,7 +113,6 @@ def draw_expanded_slider(
 
     rectangles = get_rectangles(display_frame_count, frame_width)
     for i, value_rect in enumerate(rectangles):
-
         # Drawn checkered pattern
         if not thumbnails:
             painter.setPen(Qt.PenStyle.NoPen)
@@ -125,9 +123,12 @@ def draw_expanded_slider(
         # Draw current frame
         absolute_frame = i + display_frame_start
         if absolute_frame == current_frame:
-            color = QtGui.QColor(CURSORCOLOR)
-            pen = QtGui.QPen(color) if i in annotations else Qt.NoPen
-            brush = Qt.NoBrush if i in annotations else QtGui.QBrush(color)
+            CURSORCOLOR.setAlpha(255)
+            if thumbnails:
+                CURSORCOLOR.setAlpha(150)
+            pen = QtGui.QPen(CURSORCOLOR) if i in annotations else Qt.NoPen
+            brush = (Qt.NoBrush
+                     if i in annotations else QtGui.QBrush(CURSORCOLOR))
             painter.setPen(pen)
             painter.setBrush(brush)
             painter.drawRect(value_rect)
@@ -209,7 +210,6 @@ def draw_contracted_slider(
         separator -= display_frame_start
         left_rect = frame_width * separator
         right_rect = frame_width * (separators[i+1] - start)
-        print(left_rect, right_rect)
         rect = QtCore.QRectF(
             left_rect, full_rect.top(), right_rect, full_rect.height())
         painter.drawRect(rect)
@@ -217,6 +217,10 @@ def draw_contracted_slider(
 
     # Draw cursor
     painter.setPen(Qt.PenStyle.NoPen)
+    CURSORCOLOR.setAlpha(255)
+    if thumbnails:
+        CURSORCOLOR.setAlpha(150)
+
     painter.setBrush(CURSORCOLOR)
     x = (get_rectangles(display_frame_count, frame_width)
          [current_frame - display_frame_start].left()
