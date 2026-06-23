@@ -7,7 +7,7 @@ import embarker.commands as ebc
 from embarker import preferences
 
 from embarker.timeline.draw import (
-    SLIDER_HEIGHT, MARKER_COLOR, draw_slider, draw_zoom_slider)
+    DEFAULT_SLIDER_HEIGHT, MARKER_COLOR, draw_slider, draw_zoom_slider)
 
 
 THUMBNAIL_HEIGHT = 200
@@ -187,8 +187,7 @@ class TimelineSlider(QtWidgets.QWidget):
             QtWidgets.QSizePolicy.Expanding,
             QtWidgets.QSizePolicy.Expanding)
         self.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)
-        self.setFixedHeight(
-            float(preferences.get('timeline_height', 0) or SLIDER_HEIGHT))
+        self.setFixedHeight(preferences.get('timeline_height', DEFAULT_SLIDER_HEIGHT))
         self.setMouseTracking(True)
 
     @property
@@ -506,9 +505,9 @@ class TimelineSlider(QtWidgets.QWidget):
                 count = 0
                 for container in ebc.get_session().playlist.containers:
                     # contains pixmap and width
-                    self.thumbnails[count] = container.thumbnail(
-                        float(preferences.get('timeline_height')
-                              or SLIDER_HEIGHT), 0)
+                    height = preferences.get(
+                        'timeline_height', DEFAULT_SLIDER_HEIGHT)
+                    self.thumbnails[count] = container.thumbnail(height)
                     count += container.length
             else:
                 self.thumbnails = None

@@ -192,12 +192,7 @@ class EmbarkerMainWindow(QtWidgets.QMainWindow):
         stack_layout.addWidget(self.canvas)
 
         self.playback_widget = QtWidgets.QWidget()
-        self.playback_widget.setSizePolicy(
-            QtWidgets.QSizePolicy.Policy.Minimum,
-            QtWidgets.QSizePolicy.Policy.Minimum)
         playback_layout = QtWidgets.QHBoxLayout(self.playback_widget)
-        playback_layout.setSizeConstraint(
-            QtWidgets.QBoxLayout.SizeConstraint.SetMinimumSize)
         playback_layout.setContentsMargins(0, 0, 0, 0)
         playback_layout.setSpacing(0)
         for button in playback_buttons:

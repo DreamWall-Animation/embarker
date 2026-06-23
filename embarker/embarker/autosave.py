@@ -16,9 +16,7 @@ class AutoSave(QtCore.QObject):
         self.schedule_auto_save = False
 
     def start(self):
-        self.timer.start(
-            int(preferences.get('autosave_timer'))
-            if preferences.get('autosave_timer') else 30000, self)
+        self.timer.start(preferences.get('autosave_timer', 30_000), self)
 
     def restart_timer(self):
         self.timer.stop()
@@ -26,7 +24,6 @@ class AutoSave(QtCore.QObject):
 
     def timerEvent(self, _):
         if ebc.get_session().is_empty():
-            print('do not autosave empty session')
             return
         if ebc.get_main_window().media_player.is_playing():
             self.schedule_auto_save = True
@@ -35,9 +32,8 @@ class AutoSave(QtCore.QObject):
 
     def auto_save(self):
         if ebc.get_session().filepath:
-            directory = (
-                preferences.get('autosave_filepath') if
-                preferences.get('autosave_filepath') else
+            directory = preferences.get(
+                'autosave_filepath',
                 os.path.dirname(ebc.get_session().filepath))
             filename = os.path.basename(ebc.get_session().filepath)
             basename = os.path.splitext(filename)[0]
@@ -56,11 +52,10 @@ class AutoSave(QtCore.QObject):
 def get_documents_folder():
     system = platform.system()
 
-    if system == "Windows":
+    if system == 'Windows':
         try:
             import ctypes
             from ctypes.wintypes import MAX_PATH
-
             CSIDL_PERSONAL = 5  # My Documents
             SHGFP_TYPE_CURRENT = 0
             buf = ctypes.create_unicode_buffer(MAX_PATH)
@@ -73,10 +68,8 @@ def get_documents_folder():
 
 
 def get_default_autosave_filepath():
-    directory = (
-        f'{get_documents_folder()}/Embarker/autosaves' if
-        not preferences.get('autosave_filepath') else
-        preferences.get('autosave_filepath'))
+    directory = preferences.get(
+        'autosave_filepath', f'{get_documents_folder()}/Embarker/autosaves')
     return get_autosave_incremental_filename(directory, DEFAULT_FILENAME)
 
 

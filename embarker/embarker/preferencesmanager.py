@@ -2,7 +2,7 @@ import os
 from PySide6 import QtWidgets, QtCore, QtGui
 from embarker import preferences
 from embarker.autosave import get_documents_folder
-from embarker.timeline.timeline import SLIDER_HEIGHT
+from embarker.timeline.timeline import DEFAULT_SLIDER_HEIGHT
 import embarker.commands as ebc
 
 
@@ -186,7 +186,6 @@ class UserColorWidget(QtWidgets.QWidget):
             options=options,
             title='Pick user color')
         if color.isValid() :
-            preferences.get('user_color')
             preferences.set('user_color', color.name())
             self.change_user_color(color)
 
@@ -199,20 +198,18 @@ class UserColorWidget(QtWidgets.QWidget):
 class TimelineWidget(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.timeline_style = (
-            'Thumbnails'if preferences.get('timeline_draw_style') else None)
+        self.timeline_style = preferences.get('timeline_draw_style', None)
 
         label_draw = QtWidgets.QLabel('Timeline Draw Style')
         self.checkbox = QtWidgets.QCheckBox()
-        if self.timeline_style:
-            self.checkbox.setChecked(True)
-        self.checkbox.clicked.connect(lambda _: self.change_style())
+        self.checkbox.setChecked(bool(self.timeline_style))
+        self.checkbox.clicked.connect(self.change_style)
 
         label_height = QtWidgets.QLabel('Timeline Height')
         self.timeline_height = QtWidgets.QLineEdit()
         self.timeline_height.setValidator(QtGui.QIntValidator())
-        self.timeline_height.setText(
-            str(preferences.get('timeline_height') or SLIDER_HEIGHT))
+        value = preferences.get('timeline_height', DEFAULT_SLIDER_HEIGHT)
+        self.timeline_height.setText(str(value))
         self.timeline_height.returnPressed.connect(self.change_height)
 
         layout = QtWidgets.QFormLayout(self)
@@ -230,11 +227,16 @@ class TimelineWidget(QtWidgets.QWidget):
         ebc.get_main_window().update()
 
     def change_height(self):
-        value = self.timeline_height.text()
+        value = max((int(self.timeline_height.text()), DEFAULT_SLIDER_HEIGHT))
+        # Ensure displayed value is at least DEFAULT_SLIDER_HEIGHT
+        self.timeline_height.setText(str(value))
+        main_window = ebc.get_main_window()
         if value:
             preferences.set('timeline_height', value)
-            ebc.get_main_window().timeline.setFixedHeight(int(value))
-            ebc.get_main_window().update()
+            main_window.timeline.setFixedHeight(value)
+            main_window.timeline.timeline.setFixedHeight(value)
+            main_window.playback_widget.setFixedHeight(value)
+            main_window.update()
             return
         preferences.delete('timeline_height')
-        ebc.get_main_window().update()
+        main_window.update()
