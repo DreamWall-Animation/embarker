@@ -17,4 +17,3 @@ class OnionSkin:
         count = min((limit, len(self.after_opacities)))
         for i in range(1, count):
             yield frame + i, self.after_opacities[i]
-

@@ -157,7 +157,7 @@ class SessionFilesModel(QtCore.QAbstractListModel):
         if not index.isValid():
             return
 
-        fp =  self.session_data['containers'][index.row()][1]
+        fp = self.session_data['containers'][index.row()][1]
         if role in (QtCore.Qt.DisplayRole, QtCore.Qt.EditRole):
             return fp
 

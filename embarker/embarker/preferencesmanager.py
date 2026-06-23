@@ -4,6 +4,7 @@ from embarker import preferences
 from embarker.autosave import get_documents_folder
 import embarker.commands as ebc
 
+
 class PreferencesWindow(QtWidgets.QWidget):
 
     def __init__(self, parent=None):
@@ -11,16 +12,15 @@ class PreferencesWindow(QtWidgets.QWidget):
         self.setWindowTitle('Preferences')
 
         self.preferences = {
-            "Autosave" : AutosaveWidget(),
-            "User Color" : UserColorWidget()
-        }
+            'Autosave': AutosaveWidget(),
+            'User Color': UserColorWidget()}
 
         self.categories = PreferencesCategoriesModel(
             list(self.preferences.keys()))
         self.categories_view = QtWidgets.QListView(parent)
         self.categories_view.setModel(self.categories)
         self.categories_view.selectionModel().selectionChanged.connect(
-            lambda _:self.change_option_panel())
+            lambda _: self.change_option_panel())
         index = self.categories.index(0, 0)
         self.categories_view.selectionModel().select(
             index, QtCore.QItemSelectionModel.Select)
@@ -44,11 +44,11 @@ class PreferencesWindow(QtWidgets.QWidget):
     def change_option_panel(self):
         index = self.categories_view.selectionModel().selectedRows()[0].row()
         key = list(self.preferences.keys())[index]
-        for item_key in self.preferences.keys() :
+        for item_key in self.preferences.keys():
             self.preferences[item_key].setVisible(item_key == key)
 
     def reset_preferences(self):
-        r =  QtWidgets.QMessageBox.question(
+        r = QtWidgets.QMessageBox.question(
             None,
             'Reset preferences ?',
             'This action is not undoable.\nWould you like to continue?')
@@ -59,11 +59,11 @@ class PreferencesWindow(QtWidgets.QWidget):
 class PreferencesCategoriesModel(QtCore.QAbstractListModel):
 
     def __init__(self, values, parent=None):
-          super().__init__(parent)
-          self.values =values
+        super().__init__(parent)
+        self.values = values
 
     def data(self, index, role=None):
-        if role == QtCore.Qt.ItemDataRole.DisplayRole :
+        if role == QtCore.Qt.ItemDataRole.DisplayRole:
             return self.values[index.row()]
         return None
 
@@ -104,7 +104,7 @@ class AutosaveWidget(QtWidgets.QWidget):
         if preferences.get('autosave_timer'):
             # divide by 100 for seconds instead of ms
             return round(int(preferences.get('autosave_timer')) / 1000)
-        return 30 # default value
+        return 30  # default value
 
     def get_filepath(self):
         if preferences.get('autosave_filepath'):

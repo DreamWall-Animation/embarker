@@ -2,6 +2,7 @@ from PySide6 import QtGui
 from embarker import preferences
 import embarker.commands as ebc
 
+
 class ActionRegistry:
     def __init__(self):
         self.descriptions = {}
@@ -62,4 +63,3 @@ class ActionRegistry:
         return [
             a for id_, a in self.actions.items()
             if self.descriptions[id_]['category'] == category]
-

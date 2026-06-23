@@ -29,7 +29,7 @@ class Session:
     def get_annotation_at(
             self,
             frame: int,
-            viewportmapper: NDCViewportMapper = None)-> CanvasModel | None:
+            viewportmapper: NDCViewportMapper = None) -> CanvasModel | None:
         """
         Return CanvasModel at timeline absolute frame.
         """
@@ -65,7 +65,7 @@ class Session:
             (id_, relative_frame), a in
             self.annotations.items() if
             container_id == id_ and
-            (not exportable_only or a.metadata.get('exportable', True)) }
+            (not exportable_only or a.metadata.get('exportable', True))}
         if not include_empty_current_frame:
             return annotations
         relative_frame = self.playlist.frames_frames[self.playlist.frame]
@@ -203,4 +203,3 @@ class Session:
             if container.id not in container_ids:
                 container_ids.append(container.id)
         return [self.get_container(id_) for id_ in container_ids]
-

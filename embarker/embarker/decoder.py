@@ -91,7 +91,7 @@ class VideoContainer:
     # def __repr__(self):
     #     message = ''
     #     for stream in self.container.streams:
-    #         codec = stream.codec_context.name if stream.codec_context else " "
+    #         codec = stream.codec_context.name if stream.codec_context else ''
     #         message += (
     #             f'Stream {stream.index} - Type: {stream.type}\n'
     #             f'Codec: {codec}\n')

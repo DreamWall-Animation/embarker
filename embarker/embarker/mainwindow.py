@@ -25,7 +25,7 @@ from embarker.decoder import EXTENSIONS
 from embarker.relocator import MovieRelocator
 from embarker.session import Session
 from embarker.shorcutmanager import ShortcutManager
-from embarker.timeline import TimeLineWidget, TimelineSlider
+from embarker.timeline.timeline import TimeLineWidget, TimelineSlider
 
 
 WINDOW_TITLE = 'Embarker'
