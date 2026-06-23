@@ -1,5 +1,5 @@
 import os
-from PySide6 import QtWidgets, QtCore, QtGui
+from PySide6 import QtWidgets, QtCore
 from embarker.api import EmbarkerDockWidget
 import embarker.commands as ebc
 
@@ -66,6 +66,7 @@ class ContainerInfos(EmbarkerDockWidget):
         frame = ebc.get_session().playlist.first_frames[container.id]
         ebc.set_frame(frame)
 
+
 class ContainersModel(QtCore.QAbstractTableModel):
     HEADERS = '', 'File', 'Start frame'
 
@@ -100,7 +101,8 @@ class ContainersModel(QtCore.QAbstractTableModel):
 
             if index.column() == 2:
                 container = ebc.get_session().playlist.containers[index.row()]
-                return str(ebc.get_session().playlist.first_frames[container.id])
+                return str(
+                    ebc.get_session().playlist.first_frames[container.id])
 
         if role == QtCore.Qt.TextAlignmentRole:
             if index.column() == 2:

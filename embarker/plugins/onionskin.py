@@ -17,7 +17,7 @@ class OnionSkin(EmbarkerDockWidget):
     ENABLE_DURING_PLAYBACK = False
 
     def __init__(self, parent=None):
-        super().__init__( parent)
+        super().__init__(parent)
         self.before = QtWidgets.QLineEdit(
             str(len(ebc.get_session().onionskin.before_opacities)))
         self.before.setValidator(QtGui.QIntValidator(bottom=1, top=20))

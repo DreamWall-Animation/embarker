@@ -27,6 +27,7 @@ class ScriptEditorDock(EmbarkerDockWidget):
 
 UI_CLASSES = [ScriptEditorDock]
 
+
 def ctrl_pressed():
     modifiers = QtWidgets.QApplication.keyboardModifiers()
     return modifiers == (modifiers | QtCore.Qt.ControlModifier)
@@ -720,4 +721,3 @@ class RightClickTabBar(QtWidgets.QTabBar):
             global_pos = self.mapToGlobal(event.pos())
             self.right_clicked.emit(global_pos)
         return super().mousePressEvent(event)
-

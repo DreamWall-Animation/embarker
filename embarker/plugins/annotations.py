@@ -1,4 +1,3 @@
-import os
 from PySide6 import QtWidgets, QtCore
 
 from embarker.api import EmbarkerDockWidget
@@ -96,7 +95,8 @@ class AnnotationsTable(EmbarkerDockWidget):
         index = next(iter(indexes), None)
         if not index:
             return
-        container_id, relative_frame = self.model.data(index, QtCore.Qt.UserRole)
+        container_id, relative_frame = self.model.data(index,
+                                                       QtCore.Qt.UserRole)
         first_frame = ebc.get_session().playlist.first_frames[container_id]
         ebc.set_frame(first_frame + relative_frame)
 
@@ -165,7 +165,8 @@ class AnnotationsListModel(QtCore.QAbstractTableModel):
             annotations = ebc.get_session().get_container_annotations(
                 container.id, True)
             container_id, relative_frame = sorted(annotations)[index.row()]
-            model = ebc.get_session().annotations[(container_id, relative_frame)]
+            model = ebc.get_session().annotations[(container_id,
+                                                   relative_frame)]
             model.metadata['exportable'] = bool(value)
             return True
 
@@ -179,8 +180,10 @@ class AnnotationsListModel(QtCore.QAbstractTableModel):
                     container.id, True)
                 container_id, relative_frame = sorted(annotations)[index.row()]
                 frame = int(value)
-                model = ebc.get_session().annotations[(container_id, relative_frame)]
-                del ebc.get_session().annotations[(container_id, relative_frame)]
+                model = ebc.get_session().annotations[(container_id,
+                                                       relative_frame)]
+                del ebc.get_session().annotations[(container_id,
+                                                   relative_frame)]
                 ebc.get_session().annotations[container_id, frame] = model
                 start = ebc.get_session().playlist.first_frames[container_id]
                 ebc.set_frame(start + frame)
