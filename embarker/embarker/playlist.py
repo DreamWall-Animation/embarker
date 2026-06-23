@@ -35,7 +35,7 @@ class Playlist(QtCore.QObject):
 
         # by frame dicts
         self.frames_paths: dict[int, str] = dict()
-        self.frames_frames: dict[int, int] = dict()  # global index to video index
+        self.frames_frames: dict[int, int] = dict()  # global to video index
         self.frames_times: dict[int, float] = dict()
         self.frames_containers: dict[int, VideoContainer] = dict()
         self.frames_images: dict[int, object] = dict()

@@ -1,9 +1,9 @@
 from functools import lru_cache
 
 from PySide6 import QtGui, QtCore
-from PySide6.QtCore import Qt
 
 import embarker.commands as ebc
+from embarker import preferences
 
 
 SLIDER_HEIGHT = 22
@@ -39,9 +39,10 @@ def draw_slider(
         display_frame_count: int,
         display_frame_start: int,
         current_frame: int,
-        cached_values: list[int],  # highlighte values
+        cached_values: list[int],  # highlighted values
         moving_frame: str | None,
-        separators: list[int]):
+        separators: list[int],
+        thumbnails: dict):
 
     if display_frame_count == 0:
         painter.drawRect(full_rect)
@@ -53,14 +54,17 @@ def draw_slider(
     if frame_width > 4:
         draw_expanded_slider(
             painter=painter,
+            full_rect=full_rect,
             frame_width=frame_width,
             display_frame_start=display_frame_start,
             display_frame_count=display_frame_count,
             current_frame=current_frame,
             highlighted_values=cached_values,
             moving_frame=moving_frame,
-            separators=separators
+            separators=separators,
+            thumbnails=thumbnails,
         )
+
     else:
         draw_contracted_slider(
             painter=painter,
@@ -71,46 +75,54 @@ def draw_slider(
             current_frame=current_frame,
             highlighted_values=cached_values,
             moving_frame=moving_frame,
-            separators=separators
+            separators=separators,
+            thumbnails=thumbnails,
         )
 
 
 def draw_expanded_slider(
         painter: QtGui.QPainter,
+        full_rect: QtCore.QRect,
         frame_width: int,
         display_frame_start: int,
         display_frame_count: int,
         current_frame: int,
         highlighted_values: list[int],
         moving_frame: str | None,
-        separators: list[int]):
+        separators: list[int],
+        thumbnails: dict):
 
     session = ebc.get_session()
     annotations = session.get_annotations_by_frames()
 
-    rectangles = get_rectangles(display_frame_count, frame_width)
-    for i, value_rect in enumerate(rectangles):
-
-        # Drawn checkered pattern
-        painter.setPen(Qt.PenStyle.NoPen)
-        color = BG_COLOR if i % 2 else BG_COLOR_ALT
-        painter.setBrush(color)
-        painter.drawRect(value_rect)
-
-        # Draw current frame
-        absolute_frame = i + display_frame_start
-        if absolute_frame == current_frame:
-            color = QtGui.QColor(CURSORCOLOR)
-            pen = QtGui.QPen(color) if i in annotations else Qt.NoPen
-            brush = Qt.NoBrush if i in annotations else QtGui.QBrush(color)
-            painter.setPen(pen)
+    if thumbnails:
+        start = 0
+        separators.append(display_frame_count)
+        for i, separator in enumerate(separators[:-1]):
+            pixmap = thumbnails[separator]
+            brush = QtGui.QBrush()
+            brush.setTexture(pixmap[0])
             painter.setBrush(brush)
-            painter.drawRect(value_rect)
 
-            # If moving an annotations, take its color
-            if moving_frame:
-                painter.setBrush(QtGui.QColor(moving_frame))
-                painter.drawRect(value_rect.adjusted(0, 0, 0, 0))
+            separator -= display_frame_start
+            left_rect = frame_width * separator
+            right_rect = frame_width * (separators[i+1] - start)
+            rect = QtCore.QRectF(
+                left_rect, full_rect.top(), right_rect, full_rect.height())
+            painter.drawRect(rect)
+            start = separator
+
+    height = int(preferences.get('timeline_height')) or SLIDER_HEIGHT
+    highlight_height = height - 4
+    rectangles = get_rectangles(display_frame_count, frame_width, height)
+    for i, value_rect in enumerate(rectangles):
+        # Drawn checkered pattern
+        absolute_frame = i + display_frame_start
+        if not thumbnails:
+            painter.setPen(QtCore.Qt.PenStyle.NoPen)
+            color = BG_COLOR if i % 2 else BG_COLOR_ALT
+            painter.setBrush(color)
+            painter.drawRect(value_rect)
 
         # Draw marker frames
         if absolute_frame in annotations:
@@ -126,7 +138,8 @@ def draw_expanded_slider(
         # Draw highlighted frames
         if absolute_frame in highlighted_values:
             painter.setBrush(HIGHLIGHT_COLOR)
-            painter.drawRect(value_rect.adjusted(0, HIGHLIGHT_Y, 0, 0))
+            painter.setPen(QtCore.Qt.PenStyle.NoPen)
+            painter.drawRect(value_rect.adjusted(0, highlight_height, 0, 0))
 
         # Draw separators
         if absolute_frame in separators:
@@ -138,8 +151,25 @@ def draw_expanded_slider(
             bottomleft = QtCore.QPointF(left, value_rect.bottom())
             painter.drawLine(topleft, bottomleft)
 
+        # Draw current frame
+        if absolute_frame == current_frame:
+            CURSORCOLOR.setAlpha(255)
+            if thumbnails:
+                CURSORCOLOR.setAlpha(150)
+            pen = (QtGui.QPen(CURSORCOLOR) if i in annotations
+                   else QtCore.Qt.NoPen)
+            brush = (QtCore.Qt.NoBrush
+                     if i in annotations else QtGui.QBrush(CURSORCOLOR))
+            painter.setPen(pen)
+            painter.setBrush(brush)
+            painter.drawRect(value_rect)
+
+            # If moving an annotations, take its color
+            if moving_frame:
+                painter.setBrush(QtGui.QColor(moving_frame))
+                painter.drawRect(value_rect.adjusted(0, 0, 0, 0))
+
     # Draw brackets
-    height = SLIDER_HEIGHT - 1
     play_start = session.playlist.playback_start
     play_end = session.playlist.playback_end
     display_end = display_frame_start + display_frame_count - 1
@@ -161,32 +191,48 @@ def draw_contracted_slider(
         current_frame: int,
         highlighted_values: list[int],
         moving_frame: str | None,
-        separators: list[int]):
+        separators: list[int],
+        thumbnails: dict):
 
     session = ebc.get_session()
-    painter.setPen(Qt.PenStyle.NoPen)
+    painter.setPen(QtCore.Qt.PenStyle.NoPen)
 
-    # Draw timeline, alternate color by shots
+    # Draw timeline, alternate color by shots, or use thumbnails
     start = 0
-    for i, separator in enumerate(separators):
-        separator -= display_frame_start
-        if separator:
+    height = int(preferences.get('timeline_height')) or SLIDER_HEIGHT
+    height_highlight = height - 4
+    marker_height = height / 2
+
+    separators.append(display_frame_count)
+    for i, separator in enumerate(separators[:-1]):
+        if thumbnails:
+            pixmap = thumbnails[separator]
+            brush = QtGui.QBrush()
+            brush.setTexture(pixmap[0])
+            painter.setBrush(brush)
+        else:
             color = BG_COLOR if i % 2 == 0 else BG_COLOR_ALT
-            left_rect = frame_width * start
-            right_rect = frame_width * (separator - start)
-            rect = QtCore.QRectF(
-                left_rect, full_rect.top(), right_rect, full_rect.height())
             painter.setBrush(color)
-            painter.drawRect(rect)
-            start = separator
+
+        separator -= display_frame_start
+        left_rect = frame_width * separator
+        right_rect = frame_width * (separators[i+1] - start)
+        rect = QtCore.QRectF(
+            left_rect, full_rect.top(), right_rect, full_rect.height())
+        painter.drawRect(rect)
+        start = separator
 
     # Draw cursor
-    painter.setPen(Qt.PenStyle.NoPen)
+    painter.setPen(QtCore.Qt.PenStyle.NoPen)
+    CURSORCOLOR.setAlpha(255)
+    if thumbnails:
+        CURSORCOLOR.setAlpha(150)
+
     painter.setBrush(CURSORCOLOR)
-    x = (get_rectangles(display_frame_count, frame_width)
+    x = (get_rectangles(display_frame_count, frame_width, height)
          [current_frame - display_frame_start].left()
          - CURSOR_FIXED_WIDTH * 0.5)
-    painter.drawRect(QtCore.QRect(x, 0, CURSOR_FIXED_WIDTH, SLIDER_HEIGHT))
+    painter.drawRect(QtCore.QRect(x, 0, CURSOR_FIXED_WIDTH, height))
 
     # Draw annotations
     painter.setBrush(MARKER_COLOR)
@@ -195,20 +241,20 @@ def draw_contracted_slider(
         if annotation:
             metadata = annotation.metadata
             painter.setBrush(
-                QtGui.QColor(QtGui.QColor(metadata.get('user_color'))
-                             if metadata and metadata.get('user_color')
-                             else MARKER_COLOR))
+                QtGui.QColor(metadata.get('user_color'))
+                if metadata and metadata.get('user_color')
+                else MARKER_COLOR)
 
-        x = (get_rectangles(display_frame_count, frame_width)
+        x = (get_rectangles(display_frame_count, frame_width, height)
              [frame - display_frame_start].left() + 0.5 * frame_width)
 
         painter.drawRect(QtCore.QRect(
-            x, MARKER_Y, MARKER_FIXED_WIDTH, SLIDER_HEIGHT))
+            x, marker_height, MARKER_FIXED_WIDTH, height))
 
     # Draw moving annotations
     if moving_frame:
         painter.setBrush(QtGui.QColor(moving_frame))
-        painter.drawRect(QtCore.QRect(x, 0, CURSOR_FIXED_WIDTH, SLIDER_HEIGHT))
+        painter.drawRect(QtCore.QRect(x, 0, CURSOR_FIXED_WIDTH, height))
 
     # Draw Highlights
     painter.setBrush(HIGHLIGHT_COLOR)
@@ -217,13 +263,12 @@ def draw_contracted_slider(
 
         # Check if frame is displayed
         if display_frame_start < frame < display_end:
-            x = (get_rectangles(display_frame_count, frame_width)
+            x = (get_rectangles(display_frame_count, frame_width, height)
                  [frame - display_frame_start].left())
             painter.drawRect(QtCore.QRect(
-                x, HIGHLIGHT_Y, HIGHLIGHT_FIXED_WIDTH, SLIDER_HEIGHT))
+                x, height_highlight, HIGHLIGHT_FIXED_WIDTH, height))
 
     # Draw Brackets
-    height = SLIDER_HEIGHT - 1
     play_start = session.playlist.playback_start or 0
     play_end = (session.playlist.playback_end
                 or session.playlist.frames_count - 1)
@@ -248,7 +293,7 @@ def draw_zoom_slider(
     frame_size = rect.width() / session.playlist.frames_count
 
     # Draw the whole timeline
-    painter.setPen(Qt.PenStyle.NoPen)
+    painter.setPen(QtCore.Qt.PenStyle.NoPen)
     painter.setBrush(ZOOM_COLOR)
     painter.drawRect(QtCore.QRect(
         left, top, rect.width(), ZOOM_HEIGHT))
