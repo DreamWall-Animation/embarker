@@ -95,8 +95,8 @@ class AnnotationsTable(EmbarkerDockWidget):
         index = next(iter(indexes), None)
         if not index:
             return
-        container_id, relative_frame = self.model.data(index,
-                                                       QtCore.Qt.UserRole)
+        container_id, relative_frame = self.model.data(
+            index, QtCore.Qt.UserRole)
         first_frame = ebc.get_session().playlist.first_frames[container_id]
         ebc.set_frame(first_frame + relative_frame)
 
@@ -117,12 +117,14 @@ class AnnotationsListModel(QtCore.QAbstractTableModel):
         container = ebc.get_session().get_current_container()
         if container is None:
             return 0
-        return len(ebc.get_session().get_container_annotations(container.id, True))
+        return len(ebc.get_session().get_container_annotations(
+            container.id, True))
 
     def flags(self, index):
         if index.column() == 0:
             container = ebc.get_session().get_current_container()
-            annotations = ebc.get_session().get_container_annotations(container.id, True)
+            annotations = ebc.get_session().get_container_annotations(
+                container.id, True)
             if index.row() > len(annotations) - 1:
                 return QtCore.Qt.ItemIsEditable
             container_id, relative_frame = sorted(annotations)[index.row()]
@@ -165,8 +167,8 @@ class AnnotationsListModel(QtCore.QAbstractTableModel):
             annotations = ebc.get_session().get_container_annotations(
                 container.id, True)
             container_id, relative_frame = sorted(annotations)[index.row()]
-            model = ebc.get_session().annotations[(container_id,
-                                                   relative_frame)]
+            model = ebc.get_session().annotations[
+                (container_id, relative_frame)]
             model.metadata['exportable'] = bool(value)
             return True
 

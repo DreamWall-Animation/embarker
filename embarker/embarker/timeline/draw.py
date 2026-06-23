@@ -112,7 +112,7 @@ def draw_expanded_slider(
             painter.drawRect(rect)
             start = separator
 
-    height = int(preferences.get('timeline_height')) or SLIDER_HEIGHT
+    height = int(preferences.get('timeline_height', 0)) or SLIDER_HEIGHT
     highlight_height = height - 4
     rectangles = get_rectangles(display_frame_count, frame_width, height)
     for i, value_rect in enumerate(rectangles):
@@ -199,7 +199,7 @@ def draw_contracted_slider(
 
     # Draw timeline, alternate color by shots, or use thumbnails
     start = 0
-    height = int(preferences.get('timeline_height')) or SLIDER_HEIGHT
+    height = int(preferences.get('timeline_height', 0)) or SLIDER_HEIGHT
     height_highlight = height - 4
     marker_height = height / 2
 
