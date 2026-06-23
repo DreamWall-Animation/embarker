@@ -117,30 +117,12 @@ def draw_expanded_slider(
     rectangles = get_rectangles(display_frame_count, frame_width, height)
     for i, value_rect in enumerate(rectangles):
         # Drawn checkered pattern
+        absolute_frame = i + display_frame_start
         if not thumbnails:
             painter.setPen(QtCore.Qt.PenStyle.NoPen)
             color = BG_COLOR if i % 2 else BG_COLOR_ALT
             painter.setBrush(color)
             painter.drawRect(value_rect)
-
-        # Draw current frame
-        absolute_frame = i + display_frame_start
-        if absolute_frame == current_frame:
-            CURSORCOLOR.setAlpha(255)
-            if thumbnails:
-                CURSORCOLOR.setAlpha(150)
-            pen = (QtGui.QPen(CURSORCOLOR) if i in annotations
-                   else QtCore.Qt.NoPen)
-            brush = (QtCore.Qt.NoBrush
-                     if i in annotations else QtGui.QBrush(CURSORCOLOR))
-            painter.setPen(pen)
-            painter.setBrush(brush)
-            painter.drawRect(value_rect)
-
-            # If moving an annotations, take its color
-            if moving_frame:
-                painter.setBrush(QtGui.QColor(moving_frame))
-                painter.drawRect(value_rect.adjusted(0, 0, 0, 0))
 
         # Draw marker frames
         if absolute_frame in annotations:
@@ -168,6 +150,24 @@ def draw_expanded_slider(
             topleft = QtCore.QPointF(left, value_rect.top())
             bottomleft = QtCore.QPointF(left, value_rect.bottom())
             painter.drawLine(topleft, bottomleft)
+
+        # Draw current frame
+        if absolute_frame == current_frame:
+            CURSORCOLOR.setAlpha(255)
+            if thumbnails:
+                CURSORCOLOR.setAlpha(150)
+            pen = (QtGui.QPen(CURSORCOLOR) if i in annotations
+                   else QtCore.Qt.NoPen)
+            brush = (QtCore.Qt.NoBrush
+                     if i in annotations else QtGui.QBrush(CURSORCOLOR))
+            painter.setPen(pen)
+            painter.setBrush(brush)
+            painter.drawRect(value_rect)
+
+            # If moving an annotations, take its color
+            if moving_frame:
+                painter.setBrush(QtGui.QColor(moving_frame))
+                painter.drawRect(value_rect.adjusted(0, 0, 0, 0))
 
     # Draw brackets
     play_start = session.playlist.playback_start
@@ -232,9 +232,7 @@ def draw_contracted_slider(
     x = (get_rectangles(display_frame_count, frame_width, height)
          [current_frame - display_frame_start].left()
          - CURSOR_FIXED_WIDTH * 0.5)
-    painter.drawRect(QtCore.QRect(
-        x, 0, CURSOR_FIXED_WIDTH,
-        int(preferences.get('timeline_height')) or SLIDER_HEIGHT))
+    painter.drawRect(QtCore.QRect(x, 0, CURSOR_FIXED_WIDTH, height))
 
     # Draw annotations
     painter.setBrush(MARKER_COLOR)
@@ -243,9 +241,9 @@ def draw_contracted_slider(
         if annotation:
             metadata = annotation.metadata
             painter.setBrush(
-                QtGui.QColor(QtGui.QColor(metadata.get('user_color'))
-                             if metadata and metadata.get('user_color')
-                             else MARKER_COLOR))
+                QtGui.QColor(metadata.get('user_color'))
+                if metadata and metadata.get('user_color')
+                else MARKER_COLOR)
 
         x = (get_rectangles(display_frame_count, frame_width, height)
              [frame - display_frame_start].left() + 0.5 * frame_width)
