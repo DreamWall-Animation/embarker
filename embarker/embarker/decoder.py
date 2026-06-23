@@ -45,7 +45,7 @@ class VideoContainer:
     def load_audio(self):
         self.audio_samples = extract_audio_samples(self.path, self.duration)
 
-    def thumbnail(self, height, _):
+    def thumbnail(self, height, *_):
         if height in self._thumbnails:
             return self._thumbnails[height]
 

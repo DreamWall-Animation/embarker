@@ -2,6 +2,7 @@ import os
 from PySide6 import QtWidgets, QtCore, QtGui
 from embarker import preferences
 from embarker.autosave import get_documents_folder
+from embarker.timeline.timeline import SLIDER_HEIGHT
 import embarker.commands as ebc
 
 
@@ -198,25 +199,42 @@ class UserColorWidget(QtWidgets.QWidget):
 class TimelineWidget(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.timeline_style = ('Thumbnails'
-                               if preferences.get('TimelineDrawStyle')
-                               else None)
+        self.timeline_style = (
+            'Thumbnails'if preferences.get('timeline_draw_style') else None)
 
-        label = QtWidgets.QLabel('Timeline Draw Style')
+        label_draw = QtWidgets.QLabel('Timeline Draw Style')
         self.checkbox = QtWidgets.QCheckBox()
         if self.timeline_style:
             self.checkbox.setChecked(True)
         self.checkbox.clicked.connect(lambda _: self.change_style())
 
-        layout = QtWidgets.QHBoxLayout(self)
-        layout.addWidget(label)
-        layout.addWidget(self.checkbox)
+        label_height = QtWidgets.QLabel('Timeline Height')
+        self.timeline_height = QtWidgets.QLineEdit()
+        self.timeline_height.setValidator(QtGui.QIntValidator())
+        self.timeline_height.setText(
+            str(preferences.get('timeline_height') or SLIDER_HEIGHT))
+        self.timeline_height.returnPressed.connect(self.change_height)
+
+        layout = QtWidgets.QFormLayout(self)
+        layout.addRow(label_draw, self.checkbox)
+        layout.addRow(label_height, self.timeline_height)
 
     def change_style(self):
-        if preferences.get('TimelineDrawStyle'):
+        if preferences.get('timeline_draw_style'):
             self.timeline_style = None
-            preferences.delete('TimelineDrawStyle')
+            preferences.delete('timeline_draw_style')
         else:
             self.timeline_style = 'Thumbnails'
-            preferences.set('TimelineDrawStyle', 'Thumbnails')
-        self.checkbox.setChecked(bool(preferences.get('TimelineDrawStyle')))
+            preferences.set('timeline_draw_style', 'Thumbnails')
+        self.checkbox.setChecked(bool(preferences.get('timeline_draw_style')))
+        ebc.get_main_window().update()
+
+    def change_height(self):
+        value = self.timeline_height.text()
+        if value:
+            preferences.set('timeline_height', value)
+            ebc.get_main_window().timeline.setFixedHeight(int(value))
+            ebc.get_main_window().update()
+            return
+        preferences.delete('timeline_height')
+        ebc.get_main_window().update()

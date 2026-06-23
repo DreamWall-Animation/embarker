@@ -6,8 +6,8 @@ from PySide6 import QtGui, QtCore, QtWidgets
 import embarker.commands as ebc
 from embarker import preferences
 
-from embarker.timeline.draw import (SLIDER_HEIGHT, MARKER_COLOR,
-                                    draw_slider, draw_zoom_slider)
+from embarker.timeline.draw import (
+    SLIDER_HEIGHT, MARKER_COLOR, draw_slider, draw_zoom_slider)
 
 
 THUMBNAIL_HEIGHT = 200
@@ -187,7 +187,8 @@ class TimelineSlider(QtWidgets.QWidget):
             QtWidgets.QSizePolicy.Expanding,
             QtWidgets.QSizePolicy.Expanding)
         self.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)
-        self.setFixedHeight(SLIDER_HEIGHT)
+        self.setFixedHeight(
+            float(preferences.get('timeline_height') or SLIDER_HEIGHT))
         self.setMouseTracking(True)
 
     @property
@@ -216,7 +217,6 @@ class TimelineSlider(QtWidgets.QWidget):
             self.thumbnail = None
             return super().event(event)
 
-        # get focus to disable
         position = event.pos().toPointF()
         frame = self.get_frame_from_point(position)
         ctr_idx = ebc.get_session().playlist.get_container_index(frame)
@@ -233,8 +233,9 @@ class TimelineSlider(QtWidgets.QWidget):
             QtCore.Qt.ToolTip | QtCore.Qt.FramelessWindowHint)
         self.thumbnail.move(global_pos)
         self.thumbnail.show()
+        return super().event(event)
 
-    def leftClicEvent(self, event):
+    def left_click_event(self, event):
         session = ebc.get_session()
         self._mlb_pressed = True
         frame = self.get_frame_from_point(event.position().toPoint())
@@ -265,7 +266,7 @@ class TimelineSlider(QtWidgets.QWidget):
         if not self.maximum:
             return
         if event.button() == QtCore.Qt.LeftButton:
-            self.leftClicEvent(event)
+            self.left_click_event(event)
 
         if event.button() == QtCore.Qt.MiddleButton:
             self._mmb_pressed = True
@@ -500,13 +501,14 @@ class TimelineSlider(QtWidgets.QWidget):
                 if not moving_metadata:
                     moving_metadata = MARKER_COLOR.name()
 
-            if preferences.get('TimelineDrawStyle') == 'Thumbnails':
+            if preferences.get('timeline_draw_style') == 'Thumbnails':
                 self.thumbnails = {}
                 count = 0
                 for container in ebc.get_session().playlist.containers:
                     # contains pixmap and width
                     self.thumbnails[count] = container.thumbnail(
-                        SLIDER_HEIGHT, 0)
+                        float(preferences.get('timeline_height')
+                              or SLIDER_HEIGHT), 0)
                     count += container.length
             else:
                 self.thumbnails = None
