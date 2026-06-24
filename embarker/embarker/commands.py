@@ -1,13 +1,16 @@
 import os
 import yaml
 import msgpack
-import platform
 import datetime
+import platform
+import tempfile
 import traceback
+import subprocess
 from functools import lru_cache
 
 from PySide6 import QtCore, QtGui, QtWidgets
 from paintcanvas import CanvasModel
+from paintcanvas.shapes import Bitmap
 
 from embarker import callback
 from embarker import preferences
@@ -493,6 +496,24 @@ def get_frame():
     return get_session().playlist.frame
 
 
+def _update_onionskin(frame):
+    onionskin = []
+    if get_session().onionskin.enabled is False:
+        get_main_window().canvas.onionskin = onionskin
+        return
+
+    for f, opacity in get_session().onionskin.iter_from_frame(frame):
+        annotation = get_session().get_annotation_at(f)
+        if annotation is None or annotation.is_null():
+            onionskin.append((None, opacity))
+            continue
+        if getattr(annotation, 'image_cache') is None:
+            image_cache = get_session().render_frame(f, background=False)
+            annotation.image_cache = image_cache
+        onionskin.append((annotation.image_cache, opacity))
+    get_main_window().canvas.onionskin = onionskin
+
+
 @catch_error
 @log_debug_command
 def set_frame(frame: int):
@@ -708,6 +729,43 @@ def toggle_mute_sound():
 
 @catch_error
 @log_debug_command
+def edit_current_frame_with_external_editor():
+
+    bin_path = preferences.get('external_editor')
+    if not bin_path:
+        return ScrollMessageBox(
+            'No external editor setuped. Please setup it in preferences',
+            'Error', get_main_window()).exec_()
+
+    if not os.path.exists(bin_path):
+        raise ValueError(
+            f'Setuped external software does not exists: {bin_path}')
+
+    tmp = tempfile.NamedTemporaryFile(
+        prefix='embarker_temp_capture_', suffix='.png').name
+    pixmap = get_session().render_frame(get_frame())
+    pixmap.save(tmp)
+    image = QtGui.QImage(tmp)
+    model: CanvasModel = get_main_window().canvas.model
+
+    size = model.viewportmapper.get_units_pixel_size()
+    width = image.size().width() * size.width()
+    height = image.size().height() * size.height()
+    unit_rect = QtCore.QRectF(-1, 1, width, height)
+
+    shape = Bitmap(image, unit_rect, source_filepath=tmp)
+    model.layerstack.add('capture', locked=True)
+
+    model.add_shape(shape)
+    model.add_undo_state()
+    model.selection.set(shape)
+    subprocess.Popen([bin_path, tmp])
+    get_main_window().drawn()
+    get_main_window().update()
+
+
+@catch_error
+@log_debug_command
 def toggle_loop_mode():
     state = not get_session().playlist.playback_loop
     get_session().playlist.playback_loop = state
@@ -721,24 +779,6 @@ def set_volume(value=int):
     value: int -> [0 - 100]
     """
     get_main_window().media_player.set_volume(value / 100)
-
-
-def _update_onionskin(frame):
-    onionskin = []
-    if get_session().onionskin.enabled is False:
-        get_main_window().canvas.onionskin = onionskin
-        return
-
-    for f, opacity in get_session().onionskin.iter_from_frame(frame):
-        annotation = get_session().get_annotation_at(f)
-        if annotation is None or annotation.is_null():
-            onionskin.append((None, opacity))
-            continue
-        if getattr(annotation, 'image_cache') is None:
-            image_cache = get_session().render_frame(f, background=False)
-            annotation.image_cache = image_cache
-        onionskin.append((annotation.image_cache, opacity))
-    get_main_window().canvas.onionskin = onionskin
 
 
 @catch_error

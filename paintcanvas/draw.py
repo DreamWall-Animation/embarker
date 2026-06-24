@@ -103,6 +103,7 @@ def draw_text(painter, text, viewportmapper):
 
 
 def draw_bitmap(painter, bitmap, viewportmapper):
+    bitmap.check_source_modification()
     painter.setBrush(QtCore.Qt.transparent)
     painter.setPen(QtCore.Qt.transparent)
     rect = viewportmapper.to_viewport_rect(bitmap.rect)

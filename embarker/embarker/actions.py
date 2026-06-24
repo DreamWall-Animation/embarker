@@ -131,6 +131,16 @@ def get_default_actions(mainwindow):
             'shortcut': QtGui.QKeySequence(Qt.CTRL | Qt.Key_Q),
         },
         {
+            'id': 'EditFrameWithExternalEditor',
+            'text': 'Edit current frame with external editor',
+            'category': 'Session',
+            'icon': None,
+            'group': None,
+            'method': ebc.edit_current_frame_with_external_editor,
+            'checkable': False,
+            'shortcut': None,
+        },
+        {
             'id': 'ExportImage',
             'text': 'Export current annotation',
             'category': 'Session',

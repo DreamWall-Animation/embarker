@@ -4,7 +4,7 @@ from embarker import preferences
 from embarker.autosave import get_documents_folder
 from embarker.timeline.timeline import DEFAULT_SLIDER_HEIGHT
 import embarker.commands as ebc
-
+from embarker.resources import get_icon
 
 class PreferencesWindow(QtWidgets.QWidget):
 
@@ -14,9 +14,9 @@ class PreferencesWindow(QtWidgets.QWidget):
 
         self.preferences = {
             'Autosave': AutosaveWidget(self),
-            'User Color': UserColorWidget(self),
+            'User color': UserColorWidget(self),
             'Timeline': TimelineWidget(self),
-        }
+            'External editor': ExternalEditorWidget(self)}
 
         self.categories = PreferencesCategoriesModel(
             list(self.preferences.keys()))
@@ -240,3 +240,47 @@ class TimelineWidget(QtWidgets.QWidget):
             return
         preferences.delete('timeline_height')
         main_window.update()
+
+
+class ExternalEditorWidget(QtWidgets.QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.software_path = QtWidgets.QLineEdit()
+        self.software_path.setText(preferences.get('external_editor'))
+        self.software_path.returnPressed.connect(self.set_software_path)
+
+        software_path_browser = QtWidgets.QPushButton()
+        software_path_browser.setIcon(get_icon(('open_session.png')))
+        software_path_browser.released.connect(self.browse_software_path)
+
+        dummy = QtWidgets.QWidget()
+        hlayout = QtWidgets.QHBoxLayout(dummy)
+        hlayout.setContentsMargins(0, 0, 0, 0)
+        hlayout.setSpacing(0)
+        hlayout.addWidget(self.software_path)
+        hlayout.addWidget(software_path_browser)
+
+        form = QtWidgets.QFormLayout(self)
+        form.addRow('External editor path', dummy)
+
+    def set_software_path(self):
+        bin_path = os.path.normpath(self.software_path.text())
+        if not bin_path:
+            preferences.delete('external_editor')
+            return
+        if not os.path.exists(bin_path):
+            QtWidgets.QMessageBox.critical(self, 'Error', 'Sofware not found.')
+            return
+        if not os.access(bin_path, os.X_OK):
+            QtWidgets.QMessageBox.critical(
+                self, 'Error', 'Please select and executable.')
+            return
+        preferences.set('external_editor', bin_path)
+
+    def browse_software_path(self):
+        filepath, r = QtWidgets.QFileDialog.getOpenFileName(
+            self, 'Select executable')
+        if not r or not filepath:
+            return
+        self.software_path.setText(filepath)
+        self.set_software_path()

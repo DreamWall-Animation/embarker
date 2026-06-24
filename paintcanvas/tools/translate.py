@@ -116,7 +116,6 @@ class TranslationTool(NavigationTool):
         if not self._mouse_ghost:
             self.set_hover_element(event.pos())
             return
-        print('DISPLACE')
         point = event.pos()
         x = self._mouse_ghost.x() - point.x()
         y = self._mouse_ghost.y() - point.y()

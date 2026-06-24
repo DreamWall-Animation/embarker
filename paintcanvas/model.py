@@ -143,7 +143,7 @@ class CanvasModel:
         image = QtGui.QImage(path)
         self.add_image(image)
 
-    def add_image(self, image):
+    def add_image(self, image=None):
         # get viewport size rect
         size = self.viewportmapper.get_units_pixel_size()
         width = image.size().width() * size.width()

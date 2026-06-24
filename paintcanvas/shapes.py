@@ -1,3 +1,4 @@
+import os
 import base64
 import itertools
 from dataclasses import replace
@@ -72,15 +73,31 @@ class Text:
 class Bitmap:
     TYPE = 'bitmap'
 
-    def __init__(self, image: QtGui.QImage, rect):
+    def __init__(self, image: QtGui.QImage, rect, source_filepath=None):
         self.image = image
+        self.source_filepath = source_filepath
+        self.modification_date = (
+            os.stat(source_filepath).st_mtime_ns if
+            source_filepath and os.path.exists(source_filepath) else None)
         self.rect = rect
 
     def offset(self, offset):
         self.rect.moveTopLeft(self.rect.topLef() + offset)
 
     def copy(self):
-        return Bitmap(QtGui.QImage(self.image), QtCore.QRectF(self.rect))
+        return Bitmap(
+            QtGui.QImage(self.image),
+            QtCore.QRectF(self.rect),
+            self.source_filepath)
+
+    def check_source_modification(self):
+        if not self.source_filepath:
+            return
+        if not os.path.exists(self.source_filepath):
+            return
+        if os.stat(self.source_filepath).st_mtime_ns == self.modification_date:
+            return
+        self.image = QtGui.QImage(self.source_filepath)
 
     def serialize(self):
         byte_array = QtCore.QByteArray()
@@ -91,6 +108,7 @@ class Bitmap:
         return {
             'type': self.TYPE,
             'image': image_data,
+            'source_filepath': self.source_filepath,
             'rect': [
                 *self.rect.topLeft().toTuple(),
                 self.rect.width(),
@@ -104,7 +122,8 @@ class Bitmap:
         qimage.loadFromData(byte_array, 'PNG')
         return Bitmap(
             image=qimage,
-            rect=QtCore.QRectF(*data['rect']))
+            rect=QtCore.QRectF(*data['rect']),
+            source_filepath=data.get('source_filepath'))
 
 
 class Rectangle:

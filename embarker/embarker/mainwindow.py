@@ -338,6 +338,8 @@ class EmbarkerMainWindow(QtWidgets.QMainWindow):
         export_menu = QtWidgets.QMenu('E&xport')
         export_menu.addAction(self.actionregistry.get('ExportImage'))
         export_menu.addAction(self.actionregistry.get('ExportImages'))
+        action = self.actionregistry.get('EditFrameWithExternalEditor')
+        export_menu.addAction(action)
         self.menuBar().addMenu(export_menu)
 
         zoom_menu = QtWidgets.QMenu('Zoom')
