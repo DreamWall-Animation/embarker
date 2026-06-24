@@ -752,6 +752,18 @@ def toggle_onionskin(*_):
 
 @catch_error
 @log_debug_command
+def toggle_dock(dock_object_name):
+    action = next((
+        d.toggleViewAction()
+        for d in get_main_window().findChildren(QtWidgets.QDockWidget) if
+        d.objectName() == dock_object_name), None)
+    if action is None:
+        raise ValueError(f'Unkown dock name: {dock_object_name}')
+    action.trigger()
+
+
+@catch_error
+@log_debug_command
 def set_recent_session_file(filepath):
     filepath = os.path.normpath(filepath)
     recent_sessions = preferences.get('recent_sessions_files', [])
