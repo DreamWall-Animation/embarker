@@ -221,6 +221,7 @@ class TimelineSlider(QtWidgets.QWidget):
         ctr_idx = ebc.get_session().playlist.get_container_index(frame)
         # Create a copy of the container, to not break reading head
         cur_container = ebc.get_session().playlist.containers[ctr_idx]
+        frame = ebc.get_session().playlist.frames_frames[frame]
         thumbnail, width = cur_container.thumbnail(
             THUMBNAIL_HEIGHT, frame)
         offset = QtCore.QPoint(-width / 2, -THUMBNAIL_HEIGHT - 14)

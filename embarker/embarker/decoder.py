@@ -45,16 +45,19 @@ class VideoContainer:
     def load_audio(self):
         self.audio_samples = extract_audio_samples(self.path, self.duration)
 
-    def thumbnail(self, height, *_):
-        if height in self._thumbnails:
-            return self._thumbnails[height]
+    def thumbnail(self, height, frame=0):
+        thumbnail = self._thumbnails.get(frame, {}).get(height)
+        if thumbnail:
+            return thumbnail
 
-        decoded_image = self.decode_frame(0)
+        thumbnails = self._thumbnails.setdefault(frame, {})
+
+        decoded_image = self.decode_frame(frame)
         pixmap = numpy_to_qpixmap(decoded_image)
         ratio = pixmap.width() / pixmap.height()
         width = height * ratio
-        self._thumbnails[height] = pixmap.scaled(width, height), width
-        return self._thumbnails[height]
+        thumbnails[height] = pixmap.scaled(width, height), width
+        return thumbnails[height]
 
     @property
     def metadata(self):
