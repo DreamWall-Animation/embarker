@@ -168,6 +168,7 @@ class MergeAnnotations(QtWidgets.QDialog):
 class TimelineSlider(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.setStyle(TooltipStyle())
         self.handeling_range = None
         self._mlb_pressed = False
         self._mmb_pressed = False
@@ -523,8 +524,7 @@ class TimelineSlider(QtWidgets.QWidget):
                 session.playlist.frames_images.keys(),
                 moving_metadata,
                 list(session.playlist.first_frames.values()),
-                self.thumbnails,
-            )
+                self.thumbnails)
 
             # draw mini slider for zoom preview
             if play_start or self.end_frame:
@@ -532,11 +532,17 @@ class TimelineSlider(QtWidgets.QWidget):
                     painter,
                     self.rect(),
                     self.start_frame,
-                    self.end_frame
-                )
+                    self.end_frame)
 
         except Exception:
             import traceback
             print(traceback.format_exc())
         finally:
             painter.end()
+
+
+class TooltipStyle(QtWidgets.QProxyStyle):
+    def styleHint(self, hint, option=None, widget=None, returnData=None):
+        if hint == QtWidgets.QStyle.StyleHint.SH_ToolTip_WakeUpDelay:
+            return 300
+        return super().styleHint(hint, option, widget, returnData)
