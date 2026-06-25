@@ -516,8 +516,8 @@ class EmbarkerMainWindow(QtWidgets.QMainWindow):
             user_color = self.preferences.get('user_color')
             self.canvas.model.metadata['user_color'] = user_color
 
-        for dock in self.docks:
-            dock.update_view()
+        for widget in self.docks + self.toolbars:
+            widget.update_view()
 
     def current_frame_changed(self):
         if self.media_player.is_playing():
@@ -530,8 +530,8 @@ class EmbarkerMainWindow(QtWidgets.QMainWindow):
         self.veilsettings.update()
         if not self.canvas.model.is_null():
             self.canvas.update()
-        for dock in self.docks:
-            dock.update_view()
+        for widget in self.docks + self.toolbars:
+            widget.update_view()
 
     def playing_state_changed(self, state):
         if not state:

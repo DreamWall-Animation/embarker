@@ -179,6 +179,9 @@ class ToolbarExemple(EmbarkerToolBar):
         button = QtWidgets.QPushButton('Test')
         self.addWidget(button)
 
+    def update_view(self):
+        print('Current frame: ', self.session.playlist.frame)
+
 
 class TestMenu(EmbarkerMenu):
     TITLE = 'Test'

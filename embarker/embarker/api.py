@@ -101,6 +101,14 @@ class EmbarkerToolBar(QtWidgets.QToolBar):
         """
         return {}
 
+    def update_view(self):
+        """
+        Callback method to implement to manage when the current frame is
+        changed from the player and data must be changed.
+        This is NOT triggered when playback is active.
+        """
+        pass
+
 
 class EmbarkerMenu(QtWidgets.QMenu):
     """

@@ -187,7 +187,8 @@ class TimelineSlider(QtWidgets.QWidget):
             QtWidgets.QSizePolicy.Expanding,
             QtWidgets.QSizePolicy.Expanding)
         self.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)
-        self.setFixedHeight(preferences.get('timeline_height', DEFAULT_SLIDER_HEIGHT))
+        self.setFixedHeight(preferences.get(
+            'timeline_height', DEFAULT_SLIDER_HEIGHT))
         self.setMouseTracking(True)
 
     @property
