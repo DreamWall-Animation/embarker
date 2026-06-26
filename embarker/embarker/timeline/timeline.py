@@ -1,13 +1,13 @@
 
-from functools import partial
-
 from PySide6 import QtGui, QtCore, QtWidgets
 
 import embarker.commands as ebc
 from embarker import preferences
 
+from embarker.timeline.dialog import MergeAnnotationsDialog
 from embarker.timeline.draw import (
     DEFAULT_SLIDER_HEIGHT, MARKER_COLOR, draw_slider, draw_zoom_slider)
+from embarker.timeline.playback import PlaybackOptionsWidget
 
 
 THUMBNAIL_HEIGHT = 200
@@ -46,123 +46,6 @@ class TimeLineWidget(QtWidgets.QWidget):
     def update_current_frame(self):
         self.timeline.update()
         self.playback_options.update_current_frame()
-
-
-class CurrentFrameValidator(QtGui.QValidator):
-    def validate(self, string, _):
-        if not string:
-            return QtGui.QValidator.State.Intermediate
-        if not string.isdigit():
-            return QtGui.QValidator.State.Invalid
-        valid = 0 <= int(string) <= ebc.get_session().playlist.frames_count
-        return (
-            QtGui.QValidator.State.Acceptable if
-            valid else QtGui.QValidator.State.Intermediate)
-
-
-class StartFrameValidator(QtGui.QValidator):
-    def validate(self, string, _):
-        if not string:
-            return QtGui.QValidator.State.Intermediate
-        if not string.isdigit():
-            return QtGui.QValidator.State.Invalid
-        maximum = (
-            ebc.get_session().playlist.playback_end or
-            ebc.get_session().playlist.frames_count)
-        valid = 0 <= int(string) <= maximum
-        return (
-            QtGui.QValidator.State.Acceptable if
-            valid else QtGui.QValidator.State.Intermediate)
-
-
-class EndFrameValidator(QtGui.QValidator):
-    def validate(self, string, _):
-        if not string:
-            return QtGui.QValidator.State.Intermediate
-        if not string.isdigit():
-            return QtGui.QValidator.State.Invalid
-        minimum = ebc.get_session().playlist.playback_start or 0
-        maximum = ebc.get_session().playlist.frames_count
-        valid = minimum <= int(string) <= maximum
-        return (
-            QtGui.QValidator.State.Acceptable if
-            valid else QtGui.QValidator.State.Intermediate)
-
-
-class PlaybackOptionsWidget(QtWidgets.QWidget):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        validator = CurrentFrameValidator()
-        self.current_frame = QtWidgets.QLineEdit(text='0', fixedWidth=50)
-        self.current_frame.editingFinished.connect(self.set_frame)
-        self.current_frame.setValidator(validator)
-
-        validator = StartFrameValidator()
-        self.playback_start = QtWidgets.QLineEdit(text='0', fixedWidth=50)
-        self.playback_start.editingFinished.connect(self.set_playback_start)
-        self.playback_start.setValidator(validator)
-
-        validator = EndFrameValidator()
-        self.playback_end = QtWidgets.QLineEdit(text='0', fixedWidth=50)
-        self.playback_end.editingFinished.connect(self.set_playback_end)
-        self.playback_end.setValidator(validator)
-
-        layout = QtWidgets.QHBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(self.current_frame)
-        layout.addWidget(self.playback_start)
-        layout.addWidget(self.playback_end)
-
-    def set_playback_end(self):
-        ebc.set_playback_end(int(self.playback_end.text()))
-
-    def set_playback_start(self):
-        ebc.set_playback_start(int(self.playback_start.text()))
-
-    def set_frame(self):
-        ebc.set_frame(int(self.current_frame.text()))
-
-    def playback_options_changed(self):
-        self.playback_start.blockSignals(True)
-        self.playback_end.blockSignals(True)
-        self.current_frame.blockSignals(True)
-        start, end = ebc.get_session().playlist.get_playback_range()
-        self.playback_start.setText(str(start))
-        self.playback_end.setText(str(end))
-        self.current_frame.setText(str(ebc.get_session().playlist.frame))
-        self.playback_start.blockSignals(False)
-        self.playback_end.blockSignals(False)
-        self.current_frame.blockSignals(False)
-
-
-class MergeAnnotations(QtWidgets.QDialog):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setWindowTitle('Conflicting Annotations')
-        self.resize(250, 100)
-        text = 'There already exists an annotation on this frame.'
-        label = QtWidgets.QLabel(text)
-        self.merge_button = QtWidgets.QPushButton('Merge')
-        self.override_button = QtWidgets.QPushButton('Override')
-        self.cancel_button = QtWidgets.QPushButton('Cancel')
-        self.result = 0
-
-        button_layout = QtWidgets.QHBoxLayout()
-        button_layout.addWidget(self.merge_button)
-        button_layout.addWidget(self.override_button)
-        button_layout.addWidget(self.cancel_button)
-
-        self.cancel_button.clicked.connect(partial(self.set_result, 0))
-        self.merge_button.clicked.connect(partial(self.set_result, 1))
-        self.override_button.clicked.connect(partial(self.set_result, 2))
-
-        layout = QtWidgets.QVBoxLayout(self)
-        layout.addWidget(label)
-        layout.addLayout(button_layout)
-
-    def set_result(self, result):
-        self.result = result
-        self.accept()
 
 
 class TimelineSlider(QtWidgets.QWidget):
@@ -347,7 +230,7 @@ class TimelineSlider(QtWidgets.QWidget):
             self.origin_frame = None
             return
 
-        dialog = MergeAnnotations()
+        dialog = MergeAnnotationsDialog()
         dialog.exec_()
         if dialog.result == 0:
             self.cancel()
