@@ -1,6 +1,7 @@
 import math
 from PySide6 import QtCore
 
+
 def distance(a, b):
     """ return distance between two points """
     x = (b.x() - a.x())**2
@@ -19,7 +20,7 @@ def qline_cross_bbox(
         qline: QtCore.QLineF, line_width: float,
         bbox: tuple[float, float, float, float]) -> bool:
     left, top, right, bottom = bbox
-    top, bottom = max(top, bottom), min(top, bottom) # Normalize for NDC box.
+    top, bottom = max(top, bottom), min(top, bottom)  # Normalize for NDC box.
     line_rect = QtCore.QRectF(qline.p1(), qline.p2()).normalized()
     line_rect = line_rect.adjusted(
         -line_width / 2, -line_width / 2, line_width / 2, line_width / 2)

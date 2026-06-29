@@ -6,6 +6,7 @@ from embarker.timeline.timeline import DEFAULT_SLIDER_HEIGHT
 import embarker.commands as ebc
 from embarker.resources import get_icon
 
+
 class PreferencesWindow(QtWidgets.QWidget):
 
     def __init__(self, parent=None):
@@ -185,7 +186,7 @@ class UserColorWidget(QtWidgets.QWidget):
             parent=self,
             options=options,
             title='Pick user color')
-        if color.isValid() :
+        if color.isValid():
             preferences.set('user_color', color.name())
             self.change_user_color(color)
 

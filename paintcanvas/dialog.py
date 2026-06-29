@@ -71,13 +71,50 @@ class ColorSelection(QtWidgets.QDialog):
 
     def __init__(self, color, parent=None):
         super().__init__(parent=parent)
-        self.setMouseTracking(True)
         self.color = color
         self.setModal(True)
         self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
+
+        self.paint_widget = ColorPaintWidget(
+            self.color, self.COLORSIZE, self.COLCOUNT, parent=self)
+        self.paint_widget.color_picked.connect(self.on_color_picked)
+
+        self.open_color_dialog = QtWidgets.QPushButton(
+            'Choose Custom Color', self)
+        self.open_color_dialog.clicked.connect(self.open_dialog)
+
+        layout = QtWidgets.QVBoxLayout(self)
+        layout.addWidget(self.paint_widget)
+        layout.addWidget(self.open_color_dialog)
+
+    def on_color_picked(self, color):
+        self.color = color
+        self.accept()
+
+    def open_dialog(self):
+        options = QtWidgets.QColorDialog.ColorDialogOption.DontUseNativeDialog
+        picked_color = QtWidgets.QColorDialog.getColor(
+            self.color,
+            parent=self,
+            options=options,
+            title='Pick Tool Color')
+        if picked_color.isValid():
+            self.color = picked_color.name()
+            self.accept()
+
+
+class ColorPaintWidget(QtWidgets.QWidget):
+    color_picked = QtCore.Signal(str)
+
+    def __init__(self, color, colorsize, colcount, parent=None):
+        super().__init__(parent=parent)
+        self.color = color
+        self.COLORSIZE = colorsize
+        self.COLCOUNT = colcount
+        self.setMouseTracking(True)
         width = self.COLORSIZE * self.COLCOUNT
         height = self.COLORSIZE * (len(COLORS) // self.COLCOUNT)
-        self.resize(width, height)
+        self.setFixedSize(width, height)
 
     def mouseMoveEvent(self, _):
         self.repaint()
@@ -89,8 +126,7 @@ class ColorSelection(QtWidgets.QDialog):
         col = event.pos().x() // self.COLORSIZE
         index = (row * self.COLCOUNT) + col
         try:
-            self.color = COLORS[index]
-            self.accept()
+            self.color_picked.emit(COLORS[index])
         except IndexError:
             ...
 

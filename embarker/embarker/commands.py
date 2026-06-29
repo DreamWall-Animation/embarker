@@ -322,8 +322,6 @@ def load_videos(
     index: int
         Video insertion index in the timeline.
         -1 is used to add videos at the end.
-    metadatas
-
     """
     if get_main_window().media_player.is_playing():
         get_main_window().media_player.pause()

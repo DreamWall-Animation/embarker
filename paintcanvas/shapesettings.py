@@ -56,6 +56,7 @@ class Slider(QtWidgets.QWidget):
     MIN = 0
     MAX = 255
     edited = QtCore.Signal()
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.slider = SliderSetValueAtClickPosition()
