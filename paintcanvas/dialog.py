@@ -1,6 +1,7 @@
 from PySide6 import QtWidgets, QtCore, QtGui
 from paintcanvas.qtutils import COLORS
 from paintcanvas.widget import SliderSetValueAtClickPosition
+from paintcanvas.colorwheel import ColorWheel
 
 
 class OpacityDialog(QtWidgets.QWidget):
@@ -79,28 +80,24 @@ class ColorSelection(QtWidgets.QDialog):
             self.color, self.COLORSIZE, self.COLCOUNT, parent=self)
         self.paint_widget.color_picked.connect(self.on_color_picked)
 
-        self.open_color_dialog = QtWidgets.QPushButton(
-            'Choose Custom Color', self)
-        self.open_color_dialog.clicked.connect(self.open_dialog)
+        color_wheel_layout = QtWidgets.QVBoxLayout()
+        self.wheel = ColorWheel(self.color)
+        self.wheel_button = QtWidgets.QPushButton('Choose Color')
+        self.wheel_button.clicked.connect(self.accept_wheel)
+        color_wheel_layout.addWidget(self.wheel)
+        color_wheel_layout.addWidget(self.wheel_button)
 
         layout = QtWidgets.QVBoxLayout(self)
         layout.addWidget(self.paint_widget)
-        layout.addWidget(self.open_color_dialog)
+        layout.addLayout(color_wheel_layout)
 
     def on_color_picked(self, color):
         self.color = color
         self.accept()
 
-    def open_dialog(self):
-        options = QtWidgets.QColorDialog.ColorDialogOption.DontUseNativeDialog
-        picked_color = QtWidgets.QColorDialog.getColor(
-            self.color,
-            parent=self,
-            options=options,
-            title='Pick Tool Color')
-        if picked_color.isValid():
-            self.color = picked_color.name()
-            self.accept()
+    def accept_wheel(self):
+        self.color = self.wheel.current_color().name()
+        self.accept()
 
 
 class ColorPaintWidget(QtWidgets.QWidget):
