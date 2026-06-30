@@ -137,6 +137,8 @@ class Playlist(QtCore.QObject):
         self._update_audio_samples()
 
     def get_container_index(self, frame=None):
+        if not self.containers:
+            return
         frame = self.frame if frame is None else frame
         container_to_find = self.frames_containers[frame]
         for i, container in enumerate(self._containers):
