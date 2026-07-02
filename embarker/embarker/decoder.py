@@ -84,27 +84,29 @@ class VideoContainer:
         while self.next_frame != frame:
             self.video_frame = next(self.decoder)
 
-    # def _seek_to_keyframe(self, frame):
-    #     timestamp = int((frame - 1) / self.fps / self.stream.time_base)
-    #     self.container.seek(timestamp, stream=self.stream)
-    #     self.stream = self.container.streams.video[0]
-    #     self.decoder = self.container.decode(self.stream)
-    #     self.video_frame = None
+    def _seek_to_keyframe(self, frame):
+        if frame == 0:
+            return self._reset_decoder()
+        timestamp = int((frame - 1) / self.fps / self.stream.time_base)
+        self.container.seek(timestamp, stream=self.stream)
+        self.stream = self.container.streams.video[0]
+        self.decoder = self.container.decode(self.stream)
+        self.video_frame = None
 
     def decode_frame(self, frame):
-        if frame < self.next_frame:
-            self._reset_decoder()  # Rewind to frame 0
+        if frame < self.next_frame or frame - self.next_frame > self.fps:
+            self._seek_to_keyframe(frame)
         self._seek(frame)
         return self.decode_next_frame()
 
-    # def __repr__(self):
-    #     message = ''
-    #     for stream in self.container.streams:
-    #         codec = stream.codec_context.name if stream.codec_context else ''
-    #         message += (
-    #             f'Stream {stream.index} - Type: {stream.type}\n'
-    #             f'Codec: {codec}\n')
-    #     return message
+    def __repr__(self):
+        message = ''
+        for stream in self.container.streams:
+            codec = stream.codec_context.name if stream.codec_context else ''
+            message += (
+                f'Stream {stream.index} - Type: {stream.type}\n'
+                f'Codec: {codec}\n')
+        return message
 
 
 class ImageSequenceContainer:
