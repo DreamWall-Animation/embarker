@@ -241,8 +241,8 @@ def draw_contracted_slider(
         if annotation:
             metadata = annotation.metadata
             color = (
-                c:=metadata.get('user_color') if
-                metadata and c else MARKER_COLOR)
+                metadata.get('user_color') if
+                metadata and metadata.get('user_color') else MARKER_COLOR)
             painter.setBrush(QtGui.QColor(color))
         left = rectangles[frame - display_frame_start].left()
         x = left + 0.5 * frame_width
