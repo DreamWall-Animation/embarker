@@ -89,11 +89,11 @@ for environment_file in environment_files:
                 key, _, value = line.partition("=")
                 value = os.path.expandvars(value.strip())
                 if '+=' in line and key.strip() in os.environ:
-                    os.environ[key.strip()] += value
+                    os.environ[key.strip('+ ')] += ';' + value
                 else:
                     os.environ[key.strip()] = value
     except BaseException:
-        continue # Invalid file
+        continue  # Invalid file
 
 
 if platform.system() == 'Windows':
