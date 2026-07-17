@@ -168,8 +168,8 @@ class ImageSequenceContainer:
         self._thumbnails[height] = pixmap.scaled(width, height), width
         return self._thumbnails[height]
 
-    def __repr__(self):
-        return ''
+    def set_metadata(self, key, value):
+        self.metadata[key] = value
 
 
 def get_container(video_path, metadata=None, container_id=None):
@@ -186,6 +186,7 @@ def get_container(video_path, metadata=None, container_id=None):
         try:
             return ImageSequenceContainer(
                 path_pattern=video_path,
+                metadata=metadata,
                 container_id=container_id)
         except IndexError:
             print(f'Could not open {video_path}')
