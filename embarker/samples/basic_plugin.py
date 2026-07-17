@@ -128,7 +128,7 @@ class TestMenu(EmbarkerMenu):
 
 CALLBACKS = {
     # Callback events which must register functions at plugin initialisation
-    callback.BEFORE_NEW_SESSION: [], # Each list must contain list of callable taking an args Session and Commands
+    callback.BEFORE_NEW_SESSION: [],  # Each list must contain list of callable taking an args Session and Commands
     callback.BEFORE_OPEN_SESSION: [],
     callback.AFTER_NEW_SESSION: [],
     callback.AFTER_OPEN_SESSION: [],
@@ -136,7 +136,7 @@ CALLBACKS = {
     callback.ON_PLUGIN_STARTUP: [],
 }
 
-UI_CLASSES = [ # Filter of UI classes which must be added to the software when the plying is initialized
+UI_CLASSES = [  # Filter of UI classes which must be added to the software when the plying is initialized
     TestMenu,
     TestToolbar,
     ContainerInfos,

@@ -110,32 +110,24 @@ class VideoContainer:
 
 
 class ImageSequenceContainer:
-    def __init__(self, image_path, fps=25.0, metadata=None, container_id=None):
+    def __init__(
+            self, path_pattern, fps=25.0, metadata=None, container_id=None):
         self.id = container_id or str(uuid.uuid4())
-        self.path: str = image_path
-        self.basename, self.ext = os.path.splitext(self.path)
+        self.path: str = path_pattern
+        self.paths = glob.glob(self.path)
+        _, self.ext = os.path.splitext(self.path)
         self.has_alpha = self.ext in '.exr', '.png'
-        self.paths = self.search_for_other_images()
         self.length: int = len(self.paths)
         self.fps: float = fps
         self.duration: float = self.length / self.fps
         self.metadata = metadata or {}
+        self._thumbnails = {}
 
         self.audio_samples = None
         self.load_audio()
 
     def load_audio(self):
         self.audio_samples = create_silence_samples(self.duration)
-
-    def search_for_other_images(self):
-        for i, char in enumerate(reversed(self.basename)):
-            if not char.isdigit():
-                break
-        prefix = self.basename[:-i]
-        paths = glob.glob(f'{prefix}*{self.ext}')
-        if not paths:
-            return [self.path]
-        return paths
 
     def decode_frame(self, frame):
         path = self.paths[frame]
@@ -193,7 +185,7 @@ def get_container(video_path, metadata=None, container_id=None):
     else:
         try:
             return ImageSequenceContainer(
-                image_path=video_path,
+                path_pattern=video_path,
                 container_id=container_id)
         except IndexError:
             print(f'Could not open {video_path}')
