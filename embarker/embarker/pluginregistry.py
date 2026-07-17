@@ -25,16 +25,20 @@ class PluginRegistry(QtCore.QObject):
         if plugin_module_path in self.plugins_modules:
             raise ValueError(
                 f"Module already registered: {plugin_module_path}")
-        n = f'{os.path.splitext(os.path.basename(plugin_module_path))[-1]}'
+        # n = f'{os.path.splitext(os.path.basename(plugin_module_path))[-1]}'
         self.plugins_modules[plugin_module_path] = {
+            'name': '---',
             'id': None,
-            'name': n,
-            'toolbars': [],
+            'author': '---',
+            'version': '---',
             'description': '',
+            'actions': [],
             'classes': [],
+            'menus': [],
             'loaded': False,
+            'docks': [],
             'callbacks': {},
-            'docks': []}
+            'toolbars': []}
         self.sort_plugin_by_names()
         self.changed.emit()
 
