@@ -11,7 +11,7 @@ from embarker.audio import create_silence_samples, extract_audio_samples
 
 
 VIDEO_EXTENSIONS = 'mp4', 'mov', 'avi', 'mkv'
-IMAGE_EXTENSIONS = 'exr', 'png', 'jpg', 'jpeg', 'tif', 'tiff'
+IMAGE_EXTENSIONS = 'exr', 'png', 'jpg', 'jpeg', 'tif', 'tiff', 'webp'
 EXTENSIONS = VIDEO_EXTENSIONS + IMAGE_EXTENSIONS
 
 
@@ -138,7 +138,16 @@ class ImageSequenceContainer:
         return paths
 
     def decode_frame(self, frame):
-        image_input = oiio.ImageInput.open(self.paths[frame])
+        path = self.paths[frame]
+
+        if path.lower().endswith('.webp'):
+            img = QtGui.QImage(path).convertToFormat(
+                QtGui.QImage.Format.Format_RGBA8888)
+            w, h = img.width(), img.height()
+            arr = np.frombuffer(img.bits(), dtype=np.uint8).reshape((h, w, 4))
+            return arr.copy()
+
+        image_input = oiio.ImageInput.open(path)
         image = image_input.read_image(format='uint8')
         spec = image_input.spec()
         image_input.close()
