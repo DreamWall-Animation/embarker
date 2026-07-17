@@ -141,6 +141,7 @@ class ImageSequenceContainer:
         path = self.paths[frame]
 
         if path.lower().endswith('.webp'):
+            # QImage is threadsafe, not QPixmap:
             img = QtGui.QImage(path).convertToFormat(
                 QtGui.QImage.Format.Format_RGBA8888)
             w, h = img.width(), img.height()
