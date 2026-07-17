@@ -164,7 +164,7 @@ class ImageSequenceContainer:
 
         return full
 
-    def thumbnail(self, width, height, frame=0):
+    def thumbnail(self, height, frame=0):
         # TODO: maybe need to clear it if it gets too large
         if height in self._thumbnails:
             return self._thumbnails[height]
