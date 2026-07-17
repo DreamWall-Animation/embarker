@@ -61,11 +61,12 @@ def draw_slider(
             current_frame=current_frame,
             cached_frames=cached_frames,
             moving_frame=moving_frame,
-            separators=separators,
+            separators=remove_consecutive(separators),
             thumbnails=thumbnails,
         )
 
     else:
+
         draw_contracted_slider(
             painter=painter,
             full_rect=full_rect,
@@ -78,6 +79,21 @@ def draw_slider(
             separators=separators,
             thumbnails=thumbnails,
         )
+
+
+def remove_consecutive(frames):
+    """
+    Remove separators if media is only one frame lenght
+    """
+    if not frames:
+        return []
+
+    result = [frames[0]]
+    for i in range(1, len(frames)):
+        if frames[i] - frames[i-1] != 1:
+            result.append(frames[i])
+
+    return result
 
 
 def draw_expanded_slider(
