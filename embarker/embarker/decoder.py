@@ -45,7 +45,7 @@ class VideoContainer:
     def load_audio(self):
         self.audio_samples = extract_audio_samples(self.path, self.duration)
 
-    def thumbnail(self, height, frame=0):
+    def thumbnail(self, height, frame=0) -> tuple[QtGui.QPixmap, int]:
         thumbnail = self._thumbnails.get(frame, {}).get(height)
         if thumbnail:
             return thumbnail

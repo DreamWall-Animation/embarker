@@ -31,6 +31,9 @@ class ContainerInfos(EmbarkerDockWidget):
         self.containers.selectionModel().selectionChanged.connect(
             self.container_selected)
         self.containers.setShowGrid(False)
+        self.containers.setHorizontalScrollMode(
+            QtWidgets.QHeaderView.ScrollPerPixel)
+        self.containers.setAutoScroll(False)
 
         layout = QtWidgets.QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -88,11 +91,13 @@ class ContainersModel(QtCore.QAbstractTableModel):
         if role == QtCore.Qt.DecorationRole:
             if index.column() == 0:
                 container = ebc.get_session().playlist.containers[index.row()]
-                return container.thumbnail(100, 60)
+                thumbnail, _ = container.thumbnail(100)
+                return thumbnail
 
         if role == QtCore.Qt.SizeHintRole:
             if index.column() == 0:
-                return QtCore.QSize(100, 60)
+                thumbnail = self.data(index, QtCore.Qt.DecorationRole)
+                return thumbnail.size()
 
         if role == QtCore.Qt.DisplayRole:
             if index.column() == 1:
