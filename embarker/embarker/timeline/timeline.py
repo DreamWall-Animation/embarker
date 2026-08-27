@@ -335,7 +335,7 @@ class TimelineSlider(QtWidgets.QWidget):
         ebc.get_session().annotations[index] = self.moving_model
 
     def exec_context_menu(self, point):
-        frame = self.get_frame_from_point(point)
+        frame = ebc.get_frame()
         annotated_frames = ebc.get_session().get_annotated_frames()
         menu = QtWidgets.QMenu()
         frame_exists = frame in annotated_frames
@@ -360,6 +360,8 @@ class TimelineSlider(QtWidgets.QWidget):
         if action == delete_action:
             index = ebc.get_session().get_annotation_index(frame)
             del ebc.get_session().annotations[index]
+            self.update()
+            ebc.get_main_window().current_frame_changed()
 
         if action == recolor_action:
             options = QtWidgets.QColorDialog.DontUseNativeDialog
@@ -374,6 +376,7 @@ class TimelineSlider(QtWidgets.QWidget):
             if color.isValid():
                 annotation = ebc.get_session().get_annotation_at(frame)
                 annotation.metadata['user_color'] = color.name()
+                self.update()
 
     def paintEvent(self, _):
         painter = QtGui.QPainter(self)
