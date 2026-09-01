@@ -103,7 +103,8 @@ if platform.system() == 'Windows':
 
 
 app = QtWidgets.QApplication(sys.argv)
-app.setWindowIcon(get_icon('milo.ico'))
+icon = get_icon('milo.ico')
+app.setWindowIcon(icon)
 
 
 if not args.os_native_style:
@@ -114,7 +115,7 @@ if not args.os_native_style:
 
 
 window = EmbarkerMainWindow()
-window.setWindowIcon(get_icon('milo.ico'))
+window.setWindowIcon(icon)
 window.show()
 
 
@@ -153,7 +154,8 @@ if args.playlist_file:
 
 if args.session_file:
     ebc.open_session(
-        args.session_file, as_new_file=args.open_session_file_as_new_file)
+        args.session_file,
+        as_new_file=args.open_session_file_as_new_file)
 
 
 window.actionregistry.register_shortcuts()
