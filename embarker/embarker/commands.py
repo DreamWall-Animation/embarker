@@ -340,6 +340,7 @@ def load_videos(
     set_playback_start(0)
     set_playback_end(get_session().playlist.frames_count - 1)
     get_main_window().timeline.update_values()
+    callback.perform(callback.AFTER_PLAYLIST_CHANGED)
 
 
 @catch_error
@@ -361,6 +362,7 @@ def replace_videos(video_path, container_id, metadata=None):
     set_frame(get_session().playlist.frame)
     if playing:
         get_main_window().media_player.play()
+    callback.perform(callback.AFTER_PLAYLIST_CHANGED)
 
 
 @catch_error
@@ -590,6 +592,7 @@ def remove_current_video():
     get_session().playlist.remove_video()
     get_main_window().timeline.timeline.reset()
     set_frame(frame)
+    callback.perform(callback.AFTER_PLAYLIST_CHANGED)
 
 
 @catch_error
