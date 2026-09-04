@@ -20,6 +20,8 @@ class ContainerInfos(EmbarkerDockWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
+        self.fullpath = QtWidgets.QLineEdit()
+        self.fullpath.setReadOnly(True)
         self.directory = QtWidgets.QLineEdit()
         self.directory.setReadOnly(True)
         self.filename = QtWidgets.QLineEdit()
@@ -43,6 +45,7 @@ class ContainerInfos(EmbarkerDockWidget):
         form = QtWidgets.QFormLayout()
         form.setContentsMargins(0, 0, 0, 0)
         form.setSpacing(0)
+        form.addRow('Full path', self.fullpath)
         form.addRow('Directory', self.directory)
         form.addRow('Filename', self.filename)
         form.addRow('Length', self.length)
@@ -60,12 +63,14 @@ class ContainerInfos(EmbarkerDockWidget):
         container = ebc.get_session().get_current_container()
         if not container:
             self.metadata.setRowCount(0)
+            self.fullpath.setText('')
             self.directory.setText('')
             self.filename.setText('')
             self.length.setText('')
             self.fps.setText('')
             self.codec.setText('')
             return
+        self.fullpath.setText(container.path)
         self.directory.setText(os.path.dirname(container.path))
         self.filename.setText(os.path.basename(container.path))
         self.length.setText(str(container.length))
