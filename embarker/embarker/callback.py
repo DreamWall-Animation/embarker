@@ -4,7 +4,7 @@ BEFORE_NEW_SESSION = 'before_new_session'
 BEFORE_OPEN_SESSION = 'before_open_session'
 AFTER_NEW_SESSION = 'after_new_session'
 AFTER_OPEN_SESSION = 'after_open_session'
-AFTER_PLAYLIST_CHANGED = 'after_playlist_cganged'
+AFTER_PLAYLIST_CHANGED = 'after_playlist_changed'
 ON_APPLICATION_EXIT = 'on_application_exit'
 ON_PLUGIN_STARTUP = 'on_plugin_startup'
 

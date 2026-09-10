@@ -155,14 +155,13 @@ class Playlist(QtCore.QObject):
         self.build_playlist()
 
     def replace_video(
-            self, video_path, container_id, metadata=None, index=None,
-            keep_id=True):
-        container = get_container(video_path, metadata, container_id)
+            self, video_path, container_id, metadata=None, keep_id=True):
+        container = get_container(
+            video_path, metadata,
+            container_id if keep_id else None)
         if not container:
             return
-        index = self.get_container_index() if index is None else index
-        if keep_id:
-            container.id = self._containers[index].id
+        index = [c.id for c in self._containers].index(container_id)
         self._containers[index] = container
         self.build_playlist()
 

@@ -350,7 +350,7 @@ def is_playing():
 
 @catch_error
 @log_debug_command
-def replace_videos(video_path, container_id, metadata=None):
+def replace_video(video_path, container_id, metadata=None):
     playing = get_main_window().media_player.is_playing()
     if playing:
         get_main_window().media_player.pause()

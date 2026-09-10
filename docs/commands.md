@@ -150,7 +150,7 @@ Removes the currently selected video from the playlist.
 ### `render_frame`
 Renders a specific frame with annotations and returns it as a `QImage`.
 
-### `replace_videos`
+### `replace_video`
 Replaces a video in the playlist while keeping the same container ID.
 
 ### `reset_canvas`
