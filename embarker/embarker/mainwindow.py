@@ -171,18 +171,6 @@ class EmbarkerMainWindow(QtWidgets.QMainWindow):
         self.addDockWidget(Qt.LeftDockWidgetArea, imagesettings_dock)
         self.addDockWidget(Qt.LeftDockWidgetArea, layerstack_dock)
 
-        docks = sorted(
-            self.docks,
-            key=lambda cls: cls.APPEARANCE_PRIORITY,
-            reverse=True)
-
-        for widget in docks:
-            dock = QtWidgets.QDockWidget()
-            dock.setWindowTitle(widget.TITLE)
-            dock.setObjectName(widget.OBJECT_NAME)
-            dock.setWidget(widget)
-            self.addDockWidget(widget.DOCK_AREA, dock)
-
         # Layouts
         stack_layout = QtWidgets.QStackedLayout()
         stack_layout.setContentsMargins(0, 0, 0, 0)

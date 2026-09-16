@@ -176,11 +176,16 @@ class PluginRegistry(QtCore.QObject):
         dock.setWindowTitle(widget.TITLE)
         dock.setObjectName(widget.OBJECT_NAME)
         dock.setWidget(widget)
-        ebc.get_main_window().addDockWidget(widget.DOCK_AREA, dock)
+        area = (
+            widget.DOCK_AREA if widget.DOCK_AREA else
+            QtCore.Qt.RightDockWidgetArea)
+        ebc.get_main_window().addDockWidget(area, dock)
         self.plugins_modules[plugin_module]['docks'].append(dock)
         ebc.get_main_window().docks.append(widget)
         if not widget.VISIBLE_BY_DEFAULT:
             dock.hide()
+        if widget.DOCK_AREA is None:
+            dock.setFloating(True)
         return widget.get_actions()
 
     def initialize_all_plugins(self):

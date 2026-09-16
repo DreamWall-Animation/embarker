@@ -10,7 +10,7 @@ __author__ = 'David Williams'
 
 
 class ContainerInfos(EmbarkerDockWidget):
-    TITLE = "Container"
+    TITLE = 'Container'
     DOCK_AREA = QtCore.Qt.LeftDockWidgetArea
     OBJECT_NAME = 'Container-Infos'
     APPEARANCE_PRIORITY = 98
