@@ -199,12 +199,19 @@ class UserColorWidget(QtWidgets.QWidget):
 class TimelineWidget(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.timeline_style = preferences.get('timeline_draw_style', None)
 
+        self.timeline_style = preferences.get('timeline_draw_style', None)
         label_draw = QtWidgets.QLabel('Timeline Draw Style')
-        self.checkbox = QtWidgets.QCheckBox()
-        self.checkbox.setChecked(bool(self.timeline_style))
-        self.checkbox.clicked.connect(self.change_style)
+        self.style_checkbox = QtWidgets.QCheckBox()
+        self.style_checkbox.setChecked(bool(self.timeline_style))
+        self.style_checkbox.clicked.connect(self.change_style)
+
+        self.timeline_thumbnails = preferences.get(
+            'timeline_thumbnail_tooltip', None)
+        label_thumbnail = QtWidgets.QLabel('Timeline Thumbnails enabled')
+        self.thumbnail_checkbox = QtWidgets.QCheckBox()
+        self.thumbnail_checkbox.setChecked(bool(self.timeline_thumbnails))
+        self.thumbnail_checkbox.clicked.connect(self.change_thumbnails_enabled)
 
         label_height = QtWidgets.QLabel('Timeline Height')
         self.timeline_height = QtWidgets.QLineEdit()
@@ -214,7 +221,8 @@ class TimelineWidget(QtWidgets.QWidget):
         self.timeline_height.returnPressed.connect(self.change_height)
 
         layout = QtWidgets.QFormLayout(self)
-        layout.addRow(label_draw, self.checkbox)
+        layout.addRow(label_draw, self.style_checkbox)
+        layout.addRow(label_thumbnail, self.thumbnail_checkbox)
         layout.addRow(label_height, self.timeline_height)
 
     def change_style(self):
@@ -224,7 +232,19 @@ class TimelineWidget(QtWidgets.QWidget):
         else:
             self.timeline_style = 'Thumbnails'
             preferences.set('timeline_draw_style', 'Thumbnails')
-        self.checkbox.setChecked(bool(preferences.get('timeline_draw_style')))
+        self.style_checkbox.setChecked(
+            bool(preferences.get('timeline_draw_style')))
+        ebc.get_main_window().update()
+
+    def change_thumbnails_enabled(self):
+        if preferences.get('timeline_thumbnail_tooltip'):
+            self.timeline_thumbnails = None
+            preferences.delete('timeline_thumbnail_tooltip')
+        else:
+            self.timeline_thumbnails = True
+            preferences.set('timeline_thumbnail_tooltip', True)
+        self.thumbnail_checkbox.setChecked(
+            bool(preferences.get('timeline_thumbnail_tooltip')))
         ebc.get_main_window().update()
 
     def change_height(self):

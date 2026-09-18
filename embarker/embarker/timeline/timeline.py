@@ -97,6 +97,12 @@ class TimelineSlider(QtWidgets.QWidget):
         return ebc.get_session().playlist.frames_count
 
     def event(self, event):
+        if not preferences.get('timeline_thumbnail_tooltip'):
+            self.thumbnail = None
+            return super().event(event)
+        if ebc.is_playing():
+            self.thumbnail = None
+            return super().event(event)
         if event.type() != QtCore.QEvent.ToolTip:
             self.thumbnail = None
             return super().event(event)

@@ -483,6 +483,17 @@ def get_default_actions(mainwindow):
             'shortcut': None,
         },
         {
+            'id': 'TimelineThumbnails',
+            'text': 'Timeline Thumbnail Tooltips',
+            'category': 'View',
+            'icon': None,
+            'group': None,
+            'method': (mainwindow.preferences_window.preferences['Timeline'].
+                       change_thumbnails_enabled),
+            'checkable': False,
+            'shortcut': None,
+        },
+        {
             'id': 'ToggleOnionSkin',
             'text': 'Onion skin',
             'category': 'View',
