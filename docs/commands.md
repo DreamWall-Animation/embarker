@@ -17,8 +17,10 @@ image.save('c:/image.png')
 
 | Return | Function | Arguments |
 | :--- | :--- | :--- |
+| `CanvasModel` | [`create_annotation`](#create_annotation) | `frame=None, comment=None, metadata=None` |
 | `CanvasModel` | [`create_new_annotation_model`](#create_new_annotation_model) | - |
 | `None` | [`delete_annotation`](#delete_annotation) | `frame=None` |
+| `None` | [`edit_current_frame_with_external_editor`](#edit_current_frame_with_external_editor) | - |
 | `None` | [`export_annotated_frames`](#export_annotated_frames) | `directory=None` |
 | `None` | [`export_current_frame`](#export_current_frame) | `filepath=None` |
 | `None` | [`export_current_video_session`](#export_current_video_session) | - |
@@ -43,7 +45,7 @@ image.save('c:/image.png')
 | `None` | [`prompt_load_videos`](#prompt_load_videos) | `insert=False, after=False` |
 | `None` | [`remove_current_video`](#remove_current_video) | - |
 | `QtGui.QImage` | [`render_frame`](#render_frame) | `frame` |
-| `None` | [`replace_videos`](#replace_videos) | `video_path, container_id, metadata=None` |
+| `None` | [`replace_video`](#replace_video) | `video_path, container_id, metadata=None` |
 | `None` | [`reset_canvas`](#reset_canvas) | - |
 | `None` | [`save`](#save) | - |
 | `None` | [`save_as`](#save_as) | `data=None` |
@@ -58,6 +60,7 @@ image.save('c:/image.png')
 | `None` | [`set_previous_video`](#set_previous_video) | - |
 | `None` | [`set_recent_session_file`](#set_recent_session_file) | `filepath` |
 | `None` | [`set_volume`](#set_volume) | `value` |
+| `None` | [`toggle_dock`](#toggle_dock) | `dock_object_name` |
 | `None` | [`toggle_loop_mode`](#toggle_loop_mode) | - |
 | `None` | [`toggle_mute_annotations`](#toggle_mute_annotations) | - |
 | `None` | [`toggle_mute_sound`](#toggle_mute_sound) | - |
@@ -67,11 +70,22 @@ image.save('c:/image.png')
 
 ## Functions Descriptions
 
+### `create_annotation`
+Creates a new annotation at the specified frame (or current frame if not
+provided) and adds it to the session. If an annotation already exists at
+that frame, it is returned unchanged instead of being overwritten.
+
 ### `create_new_annotation_model`
 Factory method for creating a new `CanvasModel` using the current viewport mapper.
 
 ### `delete_annotation`
 Deletes the annotation at the specified frame or current frame if not provided.
+
+### `edit_current_frame_with_external_editor`
+Sends the current frame to the external editor configured in preferences.
+The rendered frame is saved to a temporary PNG, opened in the configured
+editor, and added to the canvas as a locked bitmap layer so it can be
+re-imported once edited.
 
 ### `export_annotated_frames`
 Exports all annotated frames as PNG images into the specified directory.
@@ -152,6 +166,7 @@ Renders a specific frame with annotations and returns it as a `QImage`.
 
 ### `replace_video`
 Replaces a video in the playlist while keeping the same container ID.
+Pauses playback during the swap and resumes it afterward if it was playing.
 
 ### `reset_canvas`
 Resets canvas zoom to default and centers the view.
@@ -194,6 +209,10 @@ Adds a session file path to the recent files list.
 
 ### `set_volume`
 Sets playback volume (0–100).
+
+### `toggle_dock`
+Toggles the visibility of the dock widget matching `dock_object_name`.
+Raises `ValueError` if no dock with that object name exists.
 
 ### `toggle_loop_mode`
 Toggles loop playback mode.
