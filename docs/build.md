@@ -6,7 +6,7 @@ This document explains how to build **Embarker** using the provided `build.py` s
 
 ## 1. Requirements
 
-- Python **3.11**
+- Python **3.13**
 - Windows OS (script is Windows-oriented)
 - Git
 - pip
@@ -15,7 +15,7 @@ This document explains how to build **Embarker** using the provided `build.py` s
 
 ## 2. Install Python
 
-Download Python 3.11:
+Download Python 3.13:
 
 https://www.python.org/downloads/
 
@@ -317,10 +317,10 @@ FileNotFoundError: FFMPEG not found
 ---
 
 ### Python version issues
-Ensure Python 3.11 is used:
+Ensure Python 3.13 is used:
 
 ```bash
-py -3.11 -m venv
+py -3.13 -m venv
 ```
 
 ---

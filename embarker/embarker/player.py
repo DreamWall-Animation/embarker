@@ -273,7 +273,7 @@ class MediaPlayer(QOpenGLWidget):
             gl.GL_TEXTURE_2D, 0,
             0, 0, width, height,
             channels, gl.GL_UNSIGNED_BYTE,
-            image.data)
+            np.ascontiguousarray(image))
 
         if size != self.image_size:
             self.image_size = size

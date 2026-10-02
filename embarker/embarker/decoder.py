@@ -20,7 +20,7 @@ class VideoContainer:
         self.id = container_id or str(uuid.uuid4())
         self.path = os.path.expandvars(video_path)
         self.has_alpha = False
-        self.container = av.open(self.path, metadata_errors='ignore')
+        self.container = av.open(self.path)
         self.stream = self.container.streams.video[0]
         self.stream.thread_type = 'AUTO'  # Important for performance
         self._metadata = metadata or {}
