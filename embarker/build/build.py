@@ -85,7 +85,7 @@ HERE = os.path.dirname(__file__)
 requirement_paths = [f'{HERE}/requirements.txt']
 if args.additional_requirements:
     requirement_paths.extend(args.additional_requirements)
-ps1_script = f"""py -3.11 -m venv {venv_name}
+ps1_script = f"""py -3.13 -m venv {venv_name}
 {venv_name}/Scripts/activate
 """
 for requirement_path in requirement_paths:
@@ -147,7 +147,7 @@ try:
     major, minor, fix = data['version']
     name = f'embarker-{major}.{minor}.{fix}.b{data["build"]}'
     os.rename(
-        f'{ROOT}/build/exe.win-amd64-3.11',
+        f'{ROOT}/build/exe.win-amd64-3.13',
         f'{ROOT}/build/{name}')
 
     # Savagely append the local packages because that son of a b**** of cx freeze
