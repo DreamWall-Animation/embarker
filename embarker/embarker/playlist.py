@@ -166,17 +166,23 @@ class Playlist(QtCore.QObject):
         self._containers[index] = container
         self.build_playlist()
 
-    def add_video(
-            self, video_path, metadata=None, container_id=None, index=-1,
-            build=True):
+    def add_videos(
+            self, video_paths, metadatas=None, container_ids=None, index=-1):
         index = len(self._containers) if index == -1 else index
-        container = get_container(video_path, metadata, container_id)
-        if not container:
-            return
         index = self.get_container_index() if index is None else index
-        self._containers.insert(index, container)
-        if build:
-            self.build_playlist()
+        metadatas = metadatas or [None] * len(video_paths)
+        container_ids = container_ids or [None] * len(video_paths)
+
+        with ThreadPoolExecutor() as executor:
+            containers = executor.map(
+                lambda args: get_container(*args),
+                zip(video_paths, metadatas, container_ids))
+            new_containers = [c for c in containers if c]
+
+        for i, container in enumerate(new_containers):
+            self._containers.insert(index + i, container)
+
+        self.build_playlist()
 
     def get_and_cache_frame(self, frame: int):
         try:
