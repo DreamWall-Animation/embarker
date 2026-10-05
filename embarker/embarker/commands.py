@@ -325,17 +325,7 @@ def load_videos(
     """
     if get_main_window().media_player.is_playing():
         get_main_window().media_player.pause()
-    metadatas = metadatas or [{} for _ in range(len(video_paths))]
-    container_ids = container_ids or [None for _ in range(len(video_paths))]
-    iterator = zip(video_paths, container_ids, metadatas)
-    for video_path, container_id, metadata in iterator:
-        get_session().playlist.add_video(
-            video_path=video_path,
-            container_id=container_id,
-            metadata=metadata,
-            index=index,
-            build=False)
-    get_session().playlist.build_playlist()
+    get_session().playlist.load_videos(video_paths, metadatas, container_ids)
     set_frame(get_session().playlist.frame)
     set_playback_start(0)
     set_playback_end(get_session().playlist.frames_count - 1)
