@@ -1,3 +1,4 @@
+import time
 
 
 BEFORE_NEW_SESSION = 'before_new_session'
@@ -41,5 +42,7 @@ def perform(event, plugin_id=None, *args, **kwargs):
     for id_, function in functions:
         if plugin_id is not None and id_ != plugin_id:
             continue
-        print(f'Perform callback: {event}| -> {function.__name__}')
+        start = time.time()
         function(*args, **kwargs)
+        t = round(time.time()-start, 5)
+        print(f'Callback performed: {event}| -> {function.__name__} ({t}s)')

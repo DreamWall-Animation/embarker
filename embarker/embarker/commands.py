@@ -1,4 +1,5 @@
 import os
+import time
 import yaml
 import msgpack
 import datetime
@@ -34,11 +35,21 @@ def catch_error(func):
 
 def log_debug_command(func):
     def wrap(*args, **kwargs):
-        if os.getenv('EMBARKER_COMMANDS_VERBOSITY'):
-            now = datetime.datetime.now()
-            f = f'{func.__name__}({args}, {kwargs})'
-            print(f'[COMMAND]: {now:%H:%M:%S} -> {f}')
-        return func(*args, **kwargs)
+        if not os.getenv('EMBARKER_COMMANDS_VERBOSITY'):
+            return func(*args, **kwargs)
+        start = time.time()
+        now = datetime.datetime.now()
+        # Disable Command verbosity to avoid nested print
+        value = os.getenv('EMBARKER_COMMANDS_VERBOSITY')
+        del os.environ['EMBARKER_COMMANDS_VERBOSITY']
+        r = func(*args, **kwargs)
+        # Reactivate verbosity
+        os.environ['EMBARKER_COMMANDS_VERBOSITY'] = value
+        # Print result
+        exec_time = time.time() - start
+        f = f'{func.__name__}({args}, {kwargs})'
+        print(f'[COMMAND]: {now:%H:%M:%S} | {round(exec_time, 5)}s -> {f}')
+        return r
     return wrap
 
 
@@ -192,7 +203,6 @@ def open_session(filepath=None, as_new_file=False):
         model.deserialize(annotation_data)
         get_session().annotations[(id_, frame)] = model
     get_session().cache_annotations(force=True)
-
     set_frame(0)
     if not as_new_file:
         get_session().filepath = filepath
@@ -331,7 +341,6 @@ def load_videos(
         container_ids=container_ids,
         index=index)
     set_frame(get_session().playlist.frame)
-    set_playback_start(0)
     set_playback_end(get_session().playlist.frames_count - 1)
     get_main_window().timeline.update_values()
     callback.perform(callback.AFTER_PLAYLIST_CHANGED)

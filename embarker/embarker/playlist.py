@@ -18,7 +18,6 @@ class Playlist(QtCore.QObject):
             buffer_post_size=60):
 
         super().__init__()
-
         self.muted = preferences.get('mute', False)
         self.volume = 1.0  # maximum 1.0
 

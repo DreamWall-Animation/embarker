@@ -193,28 +193,40 @@ def get_container(video_path, metadata=None, container_id=None):
 
 
 def numpy_to_qpixmap(array: np.ndarray) -> QtGui.QPixmap:
+    array = np.ascontiguousarray(array)
+
     if not (2 <= array.ndim <= 3):
         raise ValueError("Unsupported ndarray shape for QPixmap conversion.")
 
-    if array.ndim == 2:  # Greyscale
+    if array.ndim == 2:
         height, width = array.shape
-        bytes_per_line = width
+        bytes_per_line = array.strides[0]
         image = QtGui.QImage(
-            array.data, width, height, bytes_per_line,
-            QtGui.QImage.Format_Grayscale8).copy()
+            array.data,
+            width,
+            height,
+            bytes_per_line,
+            QtGui.QImage.Format_Grayscale8,
+        ).copy()
         return QtGui.QPixmap.fromImage(image)
 
     height, width, channels = array.shape
-    bytes_per_line = channels * width
+    bytes_per_line = array.strides[0]
+
     image_format = {
         3: QtGui.QImage.Format.Format_RGB888,
         4: QtGui.QImage.Format.Format_RGBA8888}[channels]
+
     image = QtGui.QImage(
-        array.data, width, height, bytes_per_line,
+        array.data,
+        width,
+        height,
+        bytes_per_line,
         image_format).copy()
 
     if not image:
         raise ValueError("Unsupported ndarray shape for QImage conversion.")
+
     return QtGui.QPixmap.fromImage(image)
 
 
