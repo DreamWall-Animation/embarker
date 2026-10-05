@@ -1,3 +1,4 @@
+from concurrent.futures import ThreadPoolExecutor
 from functools import lru_cache
 
 from PySide6 import QtCore
@@ -56,12 +57,12 @@ class Playlist(QtCore.QObject):
         self._containers.clear()
         metadatas = metadatas or [None] * len(video_paths)
         container_ids = container_ids or [None] * len(video_paths)
-        iterator = zip(video_paths, metadatas, container_ids)
-        for video_path, metadata, container_id in iterator:
-            container = get_container(video_path, metadata, container_id)
-            if not container:
-                continue
-            self._containers.append(container)
+
+        with ThreadPoolExecutor() as executor:
+            containers = executor.map(
+                lambda args: get_container(*args),
+                zip(video_paths, metadatas, container_ids))
+            self._containers = [c for c in containers if c]
 
         return self.build_playlist()
 
