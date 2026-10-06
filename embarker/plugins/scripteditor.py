@@ -12,7 +12,7 @@ __author__ = 'David Williams'
 
 class ScriptEditorDock(EmbarkerDockWidget):
     TITLE = 'Python console'
-    DOCK_AREA = QtCore.Qt.LeftDockWidgetArea
+    DOCK_AREA = None
     OBJECT_NAME = 'ScriptsEditor'
     APPEARANCE_PRIORITY = 98
     VISIBLE_BY_DEFAULT = False
@@ -22,6 +22,7 @@ class ScriptEditorDock(EmbarkerDockWidget):
         super().__init__(parent=parent)
         self.scripteditor = ScriptsPanel()
         layout = QtWidgets.QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.scripteditor)
 
 
@@ -99,6 +100,7 @@ class PythonHighlighter(QtGui.QSyntaxHighlighter):
         string_patterns = [
             QtCore.QRegularExpression("\"([^\"]*?)\""),
             QtCore.QRegularExpression("\'([^\']*?)\'"),]
+
         for pattern in string_patterns:
             self.highlighting_rules.append((pattern, string_format))
 

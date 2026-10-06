@@ -69,6 +69,10 @@ class VideoContainer:
     def set_metadata(self, key, value):
         self._metadata[key] = value
 
+    def delete_metadata(self, key):
+        if key in self._metadata:
+            del self._metadata[key]
+
     @property
     def next_frame(self):
         if self.video_frame is None:
@@ -170,6 +174,10 @@ class ImageSequenceContainer:
 
     def set_metadata(self, key, value):
         self.metadata[key] = value
+
+    def delete_metadata(self, key):
+        if key in self.metadata:
+            del self.metadata[key]
 
 
 def get_container(video_path, metadata=None, container_id=None):

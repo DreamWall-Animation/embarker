@@ -189,7 +189,7 @@ class Session:
                 for (container_id, frame), model in self.annotations.items()],
             'metadata': self.metadata}
 
-    def get_annotated_frames(self):
+    def get_annotated_frames(self) -> list[int]:
         return sorted([
             self.playlist.first_frames[container_id] + frame
             for (container_id, frame) in self.annotations])
