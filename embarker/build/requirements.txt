@@ -13,5 +13,5 @@ PyOpenGL==3.1.10
 PyYAML==6.0.3
 msgpack==1.2.3
 
-cx_Freeze==7.2.4
+cx_Freeze==8.7.1
 cx_Logging==3.2.1
