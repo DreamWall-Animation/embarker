@@ -28,8 +28,8 @@ class TranslationTool(NavigationTool):
     def mousePressEvent(self, event):
         fast_mode_required = (
             self.selection.type == Selection.SUBOBJECTS and (
-            len(self.selection) > 1500 or
-            isinstance(event, QtGui.QTabletEvent)))
+                len(self.selection) > 1500 or
+                isinstance(event, QtGui.QTabletEvent)))
 
         self._mode = self.FAST if fast_mode_required else self.BRUTE_FORCE
         if self._mode == self.BRUTE_FORCE:
@@ -86,7 +86,7 @@ class TranslationTool(NavigationTool):
             if rect and rect.contains(units_pos):
                 self.element_hover = self.selection
                 return
-        if not self.last_look_up or time.time() - self.last_look_up < 0.03:
+        if not self.last_look_up or time.time() - self.last_look_up > 0.03:
             self.last_look_up = time.time()
             self.element_hover = self.layerstack.find_element_at(
                 point, self.viewportmapper)

@@ -186,6 +186,7 @@ class Canvas(QtWidgets.QWidget):
 
     def clear_selection(self):
         self.selection.clear()
+        self.selection_changed.emit()
         self.update()
 
     def duplicate_selection(self):
