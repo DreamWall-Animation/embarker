@@ -15,9 +15,9 @@ pprint.pprint(config)
 
 
 build_options = {
+    'packages': ['pydub'],
     'includes': config['includes'],
     'include_files': config['include_files']}
-
 executable = Executable(
     config["executable"],
     target_name='Embarker.exe',
