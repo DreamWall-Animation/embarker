@@ -191,6 +191,8 @@ def draw_expanded_slider(
     display_end = display_frame_start + display_frame_count - 1
 
     # Dont draw bracket if it takes up all the drawn timeline
+    if None in (play_start, play_end):
+        return
     if not play_start == display_frame_start or not play_end == display_end:
         bracket_start = (play_start - display_frame_start) * frame_width
         bracket_end = (play_end - display_frame_start + 1) * frame_width
