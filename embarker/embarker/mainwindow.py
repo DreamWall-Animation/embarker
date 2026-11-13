@@ -565,8 +565,12 @@ class EmbarkerMainWindow(QtWidgets.QMainWindow):
         self.media_player.update()
 
     def show_environment(self):
+        def f(value):
+            if os.pathsep in value:
+                return '\n' + '\n    '.join(value.split(os.pathsep))
+            return value
         env_widget = QtWidgets.QTextEdit()
-        t = '\n'.join([f'{k}={v}' for k, v in os.environ.items()])
+        t = '\n'.join([f'{k}={f(v)}' for k, v in os.environ.items()])
         env_widget.setText(t)
         env_widget.setReadOnly(True)
         dialog = QtWidgets.QDialog()
