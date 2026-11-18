@@ -179,6 +179,136 @@ class ImageSequenceContainer:
             del self.metadata[key]
 
 
+class MultiContainer:
+    def __init__(self, containers, layout='horizontal'):
+        self._containers = list(containers)
+        self.layout = layout  # "horizontal" | "vertical" | "grid"
+
+    @property
+    def has_alpha(self):
+        return self._containers[0].has_alpha
+
+    @property
+    def path(self):
+        return self._containers[0].path
+
+    @property
+    def fps(self):
+        return self._containers[0].fps
+
+    @property
+    def id(self):
+        return self._containers[0].id
+
+    @property
+    def metadata(self):
+        return self._containers[0].metadata
+
+    @property
+    def container(self):
+        return self._containers[0].container
+
+    @property
+    def duration(self):
+        return self._containers[0].duration
+
+    @property
+    def length(self):
+        return self._containers[0].length
+
+    @property
+    def audio_samples(self):
+        for c in self._containers:
+            if c.audio_samples is not None:
+                return c.audio_samples
+        return None
+
+    def thumbnail(self, height, frame=0):
+        return self._containers[0].thumbnail(height, frame)
+
+    def set_metadata(self, key, value):
+        self._containers[0].set_metadata(key, value)
+
+    def delete_metadata(self, key):
+        self._containers[0].delete_metadata(key)
+
+    def _frame_or_fallback(self, container, frame):
+        if frame < container.length:
+            return container.decode_frame(frame)
+        if isinstance(container, ImageSequenceContainer):
+            # Clamp to last available frame
+            return container.decode_frame(container.length - 1)
+        # VideoContainer: use stream metadata to build black frame without decoding
+        h = container.stream.height
+        w = container.stream.width
+        channels = 4 if container.has_alpha else 3
+        return np.zeros((h, w, channels), dtype=np.uint8)
+
+    @staticmethod
+    def _unify_channels(arrays):
+        max_ch = max(a.shape[2] for a in arrays)
+        result = []
+        for arr in arrays:
+            ch = arr.shape[2]
+            if ch == max_ch:
+                result.append(arr)
+            elif ch == 3 and max_ch == 4:
+                alpha = np.full(arr.shape[:2] + (1,), 255, dtype=arr.dtype)
+                result.append(np.concatenate([arr, alpha], axis=2))
+            else:
+                result.append(arr[..., :max_ch])
+        return result
+
+    @staticmethod
+    def _pad_height(arr, target_h):
+        h = arr.shape[0]
+        if h >= target_h:
+            return arr[:target_h]
+        pad = np.zeros((target_h - h, arr.shape[1], arr.shape[2]), dtype=arr.dtype)
+        return np.concatenate([arr, pad], axis=0)
+
+    @staticmethod
+    def _pad_width(arr, target_w):
+        w = arr.shape[1]
+        if w >= target_w:
+            return arr[:, :target_w]
+        pad = np.zeros((arr.shape[0], target_w - w, arr.shape[2]), dtype=arr.dtype)
+        return np.concatenate([arr, pad], axis=1)
+
+    def decode_frame(self, frame):
+        frames = self._unify_channels(
+            [self._frame_or_fallback(c, frame) for c in self._containers])
+
+        if self.layout == 'horizontal':
+            target_h = frames[0].shape[0]
+            return np.concatenate(
+                [self._pad_height(f, target_h) for f in frames], axis=1)
+
+        if self.layout == 'vertical':
+            target_w = frames[0].shape[1]
+            return np.concatenate(
+                [self._pad_width(f, target_w) for f in frames], axis=0)
+
+        # grid
+        n = len(frames)
+        cols = int(np.ceil(np.sqrt(n)))
+        rows = int(np.ceil(n / cols))
+        target_h, target_w, ch = frames[0].shape[0], frames[0].shape[1], frames[0].shape[2]
+
+        normalized = [
+            self._pad_width(self._pad_height(f, target_h), target_w)
+            for f in frames
+        ]
+        if len(normalized) < rows * cols:
+            blank = np.zeros((target_h, target_w, ch), dtype=frames[0].dtype)
+            normalized += [blank] * (rows * cols - n)
+
+        return np.concatenate([
+            np.concatenate(normalized[r * cols:(r + 1) * cols], axis=1)
+            for r in range(rows)
+        ], axis=0)
+
+
 def get_container(video_path, metadata=None, container_id=None):
     video_path = os.path.expandvars(video_path)
     if video_path.endswith(VIDEO_EXTENSIONS):
