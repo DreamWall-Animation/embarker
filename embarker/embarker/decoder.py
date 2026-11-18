@@ -16,7 +16,9 @@ EXTENSIONS = VIDEO_EXTENSIONS + IMAGE_EXTENSIONS
 
 
 class VideoContainer:
-    def __init__(self, video_path, metadata=None, container_id=None):
+    def __init__(
+            self, video_path, metadata=None,
+            container_id=None, no_sound=False):
         self.id = container_id or str(uuid.uuid4())
         self.path = os.path.expandvars(video_path)
         self.has_alpha = False
@@ -31,6 +33,7 @@ class VideoContainer:
             self.stream.frames / self.stream.duration / self.stream.time_base)
 
         self.audio_samples = None
+        self._no_sound = no_sound
         self.load_audio()
 
         self._reset_decoder()
@@ -43,6 +46,9 @@ class VideoContainer:
         self.decoder = self.container.decode(self.stream)
 
     def load_audio(self):
+        if self._no_sound:
+            self.audio_samples = create_silence_samples(self.duration)
+            return
         self.audio_samples = extract_audio_samples(self.path, self.duration)
 
     def thumbnail(self, height, frame=0) -> tuple[QtGui.QPixmap, int]:
@@ -180,9 +186,11 @@ class ImageSequenceContainer:
 
 
 class MultiContainer:
-    def __init__(self, containers, layout='horizontal'):
+    def __init__(self, containers, layout='horizontal', container_id=None):
+        self.id = container_id or str(uuid.uuid4())
         self._containers = list(containers)
         self.layout = layout  # "horizontal" | "vertical" | "grid"
+        self.max_pixels = 2_073_600  # 1920×1080
 
     @property
     def has_alpha(self):
@@ -193,13 +201,15 @@ class MultiContainer:
     def path(self):
         return self._containers[0].path
 
-    @property
-    def fps(self):
-        return self._containers[0].fps
+    def _first_video(self):
+        for c in self._containers:
+            if isinstance(c, VideoContainer):
+                return c
+        return self._containers[0]
 
     @property
-    def id(self):
-        return self._containers[0].id
+    def fps(self):
+        return self._first_video().fps
 
     @property
     def metadata(self):
@@ -211,18 +221,15 @@ class MultiContainer:
 
     @property
     def duration(self):
-        return self._containers[0].duration
+        return self._first_video().duration
 
     @property
     def length(self):
-        return self._containers[0].length
+        return self._first_video().length
 
     @property
     def audio_samples(self):
-        for c in self._containers:
-            if c.audio_samples is not None:
-                return c.audio_samples
-        return None
+        return self._first_video().audio_samples
 
     def thumbnail(self, height, frame=0):
         return self._containers[0].thumbnail(height, frame)
@@ -239,7 +246,8 @@ class MultiContainer:
         if isinstance(container, ImageSequenceContainer):
             # Clamp to last available frame
             return container.decode_frame(container.length - 1)
-        # VideoContainer: use stream metadata to build black frame without decoding
+        # VideoContainer: use stream metadata to build black frame without
+        # decoding.
         h = container.stream.height
         w = container.stream.width
         channels = 4 if container.has_alpha else 3
@@ -283,7 +291,8 @@ class MultiContainer:
         h = arr.shape[0]
         if h >= target_h:
             return arr[:target_h]
-        pad = np.zeros((target_h - h, arr.shape[1], arr.shape[2]), dtype=arr.dtype)
+        pad = np.zeros(
+            (target_h - h, arr.shape[1], arr.shape[2]), dtype=arr.dtype)
         return np.concatenate([arr, pad], axis=0)
 
     @staticmethod
@@ -291,7 +300,8 @@ class MultiContainer:
         w = arr.shape[1]
         if w >= target_w:
             return arr[:, :target_w]
-        pad = np.zeros((arr.shape[0], target_w - w, arr.shape[2]), dtype=arr.dtype)
+        pad = np.zeros(
+            (arr.shape[0], target_w - w, arr.shape[2]), dtype=arr.dtype)
         return np.concatenate([arr, pad], axis=1)
 
     def decode_frame(self, frame):
@@ -303,34 +313,49 @@ class MultiContainer:
 
         if self.layout == 'horizontal':
             target_h = max(f.shape[0] for f in frames)
-            return np.concatenate(
-                [self._resize_array(f, target_h, int(f.shape[1] * target_h / f.shape[0]))
-                 for f in frames], axis=1)
+            resized_arrays = [
+                self._resize_array(
+                    f, target_h, int(f.shape[1] * target_h / f.shape[0]))
+                for f in frames]
+            return self._apply_max_pixels(np.concatenate(resized_arrays, axis=1))
 
         if self.layout == 'vertical':
             target_w = max(f.shape[1] for f in frames)
-            return np.concatenate(
-                [self._resize_array(f, int(f.shape[0] * target_w / f.shape[1]), target_w)
-                 for f in frames], axis=0)
+            resized_arrays = [
+                self._resize_array(
+                    f, int(f.shape[0] * target_w / f.shape[1]), target_w)
+                for f in frames]
+            return self._apply_max_pixels(np.concatenate(resized_arrays, axis=0))
 
         # grid
         n = len(frames)
         cols = int(np.ceil(np.sqrt(n)))
         rows = int(np.ceil(n / cols))
-        target_h, target_w, ch = frames[0].shape[0], frames[0].shape[1], frames[0].shape[2]
+        target_h = frames[0].shape[0]
+        target_w = frames[0].shape[1]
+        ch = frames[0].shape[2]
 
         normalized = [
             self._pad_width(self._pad_height(f, target_h), target_w)
-            for f in frames
-        ]
+            for f in frames]
+
         if len(normalized) < rows * cols:
             blank = np.zeros((target_h, target_w, ch), dtype=frames[0].dtype)
             normalized += [blank] * (rows * cols - n)
 
-        return np.concatenate([
+        result = np.concatenate([
             np.concatenate(normalized[r * cols:(r + 1) * cols], axis=1)
-            for r in range(rows)
-        ], axis=0)
+            for r in range(rows)], axis=0)
+        return self._apply_max_pixels(result)
+
+    def _apply_max_pixels(self, arr):
+        if self.max_pixels is None:
+            return arr
+        h, w = arr.shape[:2]
+        if self.max_pixels is None or h * w <= self.max_pixels:
+            return arr
+        scale = (self.max_pixels / (h * w)) ** 0.5
+        return self._resize_array(arr, int(h * scale), int(w * scale))
 
 
 def get_container(video_path, metadata=None, container_id=None):
