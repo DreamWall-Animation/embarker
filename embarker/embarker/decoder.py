@@ -120,7 +120,7 @@ class ImageSequenceContainer:
         self.path: str = path_pattern
         self.paths = glob.glob(self.path)
         _, self.ext = os.path.splitext(self.path)
-        self.has_alpha = self.ext in '.exr', '.png'
+        self.has_alpha = self.ext in ('.exr', '.png')
         self.length: int = len(self.paths)
         self.fps: float = fps
         self.duration: float = self.length / self.fps
@@ -157,7 +157,6 @@ class ImageSequenceContainer:
             dtype=np.uint8)
         x, y = spec.x, spec.y
         full[y:y+spec.height, x:x+spec.width, :] = cropped
-
         return full
 
     def thumbnail(self, height, frame=0):
