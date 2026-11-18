@@ -186,7 +186,8 @@ class MultiContainer:
 
     @property
     def has_alpha(self):
-        return self._containers[0].has_alpha
+        values = {c.has_alpha for c in self._containers}
+        return values.pop() if len(values) == 1 else False
 
     @property
     def path(self):
@@ -276,8 +277,11 @@ class MultiContainer:
         return np.concatenate([arr, pad], axis=1)
 
     def decode_frame(self, frame):
-        frames = self._unify_channels(
-            [self._frame_or_fallback(c, frame) for c in self._containers])
+        raw = [self._frame_or_fallback(c, frame) for c in self._containers]
+        if not self.has_alpha:
+            # Mixed or all-RGB: strip alpha from any RGBA frames
+            raw = [f[..., :3] if f.shape[2] == 4 else f for f in raw]
+        frames = self._unify_channels(raw)
 
         if self.layout == 'horizontal':
             target_h = frames[0].shape[0]
