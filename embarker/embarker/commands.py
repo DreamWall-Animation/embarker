@@ -1,5 +1,7 @@
 import os
 import time
+import glob
+import uuid
 import yaml
 import msgpack
 import datetime
@@ -15,9 +17,11 @@ from paintcanvas.shapes import Bitmap
 
 from embarker import callback
 from embarker import preferences
+from embarker.compatibility import ensure_session_compatibility
 from embarker.msgbox import ScrollMessageBox
-from embarker.session import Session
 from embarker.playlist import Playlist
+from embarker.decoder import EXTENSIONS, MultiContainer, build_container
+from embarker.session import Session
 
 
 def catch_error(func):
@@ -128,19 +132,13 @@ def open_session_data(data):
     """
     Open a session from data
     """
+    data = ensure_session_compatibility(data)
     callback.perform(callback.BEFORE_OPEN_SESSION, data)
 
     new_session()
-    video_paths = [elt[1] for elt in data['containers']]
-    if not all(os.path.exists(os.path.expandvars(p)) for p in video_paths):
-        raise FileNotFoundError('Some video does not exists')
-    container_ids = [elt[0] for elt in data['containers']]
-    metadatas = [elt[2] for elt in data['containers']]
-    load_videos(
-        video_paths=video_paths,
-        metadatas=metadatas,
-        container_ids=container_ids)
-    get_session().annotations.clear()
+    _check_session_media_paths(data['containers'], session_folder=None)
+    get_session().playlist.load_containers(data['containers'])
+
     for id_, frame, annotation_data in data['annotations']:
         model = CanvasModel(viewportmapper=get_main_window().viewportmapper)
         model.deserialize(annotation_data)
@@ -182,6 +180,8 @@ def open_session(filepath=None, as_new_file=False):
     with open(filepath, 'rb') as f:
         data = msgpack.load(f)
 
+    data = ensure_session_compatibility(data)
+
     new_session()
     callback.perform(
         event=callback.BEFORE_OPEN_SESSION,
@@ -189,14 +189,10 @@ def open_session(filepath=None, as_new_file=False):
         session_data=data)
 
     session_folder = os.path.dirname(filepath)
-    video_paths = [elt[1] for elt in data['containers']]
-    video_paths = _check_session_videos_paths(video_paths, session_folder)
-    container_ids = [elt[0] for elt in data['containers']]
-    metadatas = [elt[2] for elt in data['containers']]
-    load_videos(
-        video_paths=video_paths,
-        metadatas=metadatas,
-        container_ids=container_ids)
+
+    _check_session_media_paths(data['containers'], session_folder)
+    get_session().playlist.load_containers(data['containers'])
+
     get_session().annotations.clear()
     for id_, frame, annotation_data in data['annotations']:
         model = CanvasModel(viewportmapper=get_main_window().viewportmapper)
@@ -207,12 +203,17 @@ def open_session(filepath=None, as_new_file=False):
     if not as_new_file:
         get_session().filepath = filepath
     get_session().metadata = data.get('metadata', {})
+
     get_main_window().update_title()
     get_main_window().canvas.reset()
     get_main_window().drawn()
     get_main_window().autosave.restart_timer()
-    set_recent_session_file(filepath)
+    get_main_window().timeline.update_values()
 
+    set_recent_session_file(filepath)
+    set_playback_end(get_session().playlist.frames_count - 1)
+
+    callback.perform(callback.AFTER_PLAYLIST_CHANGED)
     callback.perform(callback.AFTER_OPEN_SESSION)
 
 
@@ -314,29 +315,82 @@ def import_preferences():
 @catch_error
 @busy_cursor
 @log_debug_command
-def load_videos(
-        video_paths: list[str],
+def compare_container_with_file(
+        media_path: str,
+        container_id: str | None = None,
+        update_playlist: bool = True):
+    playlist = get_session().playlist
+    container = (
+        get_session().get_container(container_id)
+        if container_id else get_session().get_current_container())
+    side_container = build_container(media_path)
+    if isinstance(container, MultiContainer):
+        container.add_side_container(container)
+    else:
+        main_container = MultiContainer(
+            [container, side_container], container_id=container.id)
+        container.id = str(uuid.uuid4())
+        playlist.replace_container(container.id, main_container)
+    if update_playlist:
+        playlist.build_playlist()
+
+
+@catch_error
+@busy_cursor
+@log_debug_command
+def clear_container_comparisons(
+        container_id: str | None = None,
+        side_container_ids_to_remove: list | None = None,
+        update_playlist: bool = True):
+    container = (
+        get_session().get_container(container_id)
+        if container_id else get_session().get_current_container())
+    if not isinstance(container, MultiContainer):
+        return
+    if side_container_ids_to_remove is None:
+        side_container_ids_to_remove = [
+            c.id for c in container.side_containers]
+    container.delete_side_containers(side_container_ids_to_remove)
+
+    playlist = get_session().playlist
+    # No comparison left, replace MutliContainer by the main container in
+    # playlist
+    if len(container.side_containers) == 0:
+        container.main_container.id = container.id
+        index = playlist.containers.index(container)
+        playlist.containers.insert(index, container.main_container)
+        playlist.containers.remove(container)
+
+    if update_playlist:
+        playlist.build_playlist()
+
+
+@catch_error
+@busy_cursor
+@log_debug_command
+def load_medias(
+        media_paths: list[str],
         container_ids: list[str] | None = None,
         metadatas: list[dict] | None = None,
         index=-1):
     """
-    Add video to current session.
-    video_paths: list[str]
+    Add media to current session.
+    media_paths: list[str]
         list of file path to open
     metadatas: list[dict] | None = None
-        List of dict associated to videos. Those are dynamically added to
+        List of dict associated to medias. Those are dynamically added to
         meta data. This allow to handle custom pipeline data which can be
         used to write plugins.
-        For instance, that can be handy to associate a video to a
+        For instance, that can be handy to associate a media to a
         Shotgrid id.
     index: int
-        Video insertion index in the timeline.
-        -1 is used to add videos at the end.
+        Media insertion index in the timeline.
+        -1 is used to add medias at the end.
     """
     if get_main_window().media_player.is_playing():
         get_main_window().media_player.pause()
-    get_session().playlist.add_videos(
-        video_paths=video_paths,
+    get_session().playlist.add_medias(
+        media_paths=media_paths,
         metadatas=metadatas,
         container_ids=container_ids,
         index=index)
@@ -353,12 +407,12 @@ def is_playing():
 
 @catch_error
 @log_debug_command
-def replace_video(video_path, container_id, metadata=None):
+def replace_media(media_path, container_id, metadata=None):
     playing = get_main_window().media_player.is_playing()
     if playing:
         get_main_window().media_player.pause()
-    get_session().playlist.replace_video(
-        video_path=video_path,
+    get_session().playlist.replace_media(
+        media_path=media_path,
         container_id=container_id,
         metadata=metadata,
         keep_id=True)
@@ -369,16 +423,17 @@ def replace_video(video_path, container_id, metadata=None):
 
 
 @catch_error
-def prompt_load_videos(insert=False, after=False):
+def prompt_load_medias(insert=False, after=False):
+    filters = ''.join(f'*. {ext}' for ext in EXTENSIONS)
     filepaths, _ = QtWidgets.QFileDialog.getOpenFileNames(
-        get_main_window(), 'Add Open videos',
-        filter='Videos (*.mov *.mp4 *.mkv)')
+        get_main_window(), 'Add Open media',
+        filter=f'Media ({filters})')
     if not filepaths:
         return
     index = get_session().playlist.get_container_index() if insert else -1
     if after and index != -1:
         index += 1
-    load_videos(filepaths, index=index)
+    load_medias(filepaths, index=index)
 
 
 @catch_error
@@ -436,14 +491,14 @@ def set_previous_annotation():
 
 @catch_error
 @log_debug_command
-def set_next_video():
+def set_next_media():
     first_frames = get_session().playlist.first_frames.values()
     _set_next_marked_frames(list(first_frames))
 
 
 @catch_error
 @log_debug_command
-def set_previous_video():
+def set_previous_media():
     first_frames = get_session().playlist.first_frames.values()
     _set_previous_marked_frames(list(first_frames))
 
@@ -592,7 +647,7 @@ def remove_current_video():
     container = get_session().get_current_container()
     frame = get_session().playlist.first_frames[container.id]
     frame = max((frame - 1, 0))
-    get_session().playlist.remove_video()
+    get_session().playlist.remove_media()
     get_main_window().timeline.timeline.reset()
     set_frame(frame)
     callback.perform(callback.AFTER_PLAYLIST_CHANGED)
@@ -626,7 +681,7 @@ def load_playlist(filepath=None):
     filepaths = [e[0] for e in data]
     metadatas = [e[1] for e in data]
     get_session().filepath = None
-    load_videos(video_paths=filepaths, metadatas=metadatas)
+    load_medias(media_paths=filepaths, metadatas=metadatas)
     get_main_window().update_title()
 
 
@@ -689,7 +744,7 @@ def export_session(container_ids, filepath=None, packed=True):
 
 @catch_error
 @log_debug_command
-def export_current_video_session():
+def export_current_media_session():
     directory = preferences.get(
         'last_session_directory',
         os.path.expanduser('~'))
@@ -823,16 +878,34 @@ def set_canvas_comment(comment):
     get_main_window().drawn()
 
 
-def _check_session_videos_paths(video_paths, session_folder):
-    result = []
-    for video_path in video_paths:
-        if os.path.exists(os.path.expandvars(video_path)):
-            result.append(video_path)
-            continue
-        alternate_path = f'{session_folder}/{os.path.basename(video_path)}'
-        if os.path.exists(alternate_path):
-            print(f'Video file repath: {video_path} -> {alternate_path}')
-            result.append(alternate_path)
-            continue
-        raise FileNotFoundError(f'{video_path}: not found')
-    return result
+def _check_session_media_paths(containers_data, session_folder):
+    for container_data in containers_data:
+        _check_container_path(container_data, None)
+
+
+def _check_container_path(container_data, session_folder=None):
+    if container_data['type'] == 'video':
+        path = container_data['kwargs']['video_path']
+        if os.path.exists(os.path.expandvars(path)):
+            return
+        if session_folder:
+            alternate_path = f'{session_folder}/{os.path.basename(path)}'
+            if os.path.exists(alternate_path):
+                container_data['kwargs']['video_path'] = alternate_path
+                return
+        raise FileNotFoundError(f'{path}: not found')
+
+    elif container_data['type'] == 'image':
+        path = os.path.expandvars(container_data['kwargs']['path_pattern'])
+        if glob.glob(path):
+            return
+        if session_folder:
+            alternate_path = f'{session_folder}/{os.path.basename(path)}'
+            if glob.glob(alternate_path):
+                container_data['kwargs']['path_pattern'] = alternate_path
+                return
+        raise FileNotFoundError(f'{path}: not found')
+
+    elif container_data['type'] == 'multi':
+        for data in container_data['kwargs']['containers']:
+            _check_container_path(data, session_folder)

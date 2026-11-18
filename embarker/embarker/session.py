@@ -5,7 +5,7 @@ from viewportmapper import NDCViewportMapper
 from paintcanvas import CanvasModel, render_annotation
 from embarker.appinfos import VERSION
 from embarker.decoder import (
-    VideoContainer, ImageSequenceContainer,
+    VideoContainer, ImageSequenceContainer, MultiContainer,
     qpixmap_to_ndarray, numpy_to_qpixmap)
 from embarker.onionskin import OnionSkin
 from embarker.playlist import Playlist
@@ -25,6 +25,17 @@ class Session:
     def clear_empty_annotations(self):
         self.annotations = {
             k: v for k, v in self.annotations.items() if not v.is_null()}
+
+    def clear_container_cache(self, container_id):
+        start = self.playlist.first_frames[container_id]
+        container = self.get_container(container_id)
+        end = start + container.length
+        for frame in range(start, end + 1):
+            try:
+                del self.playlist.frames_images[frame]
+            except KeyError:
+                # Frame is not cached.
+                pass
 
     def get_annotation_at(
             self,
@@ -100,7 +111,8 @@ class Session:
         "Return the current container index"
         return self.playlist.get_container_index(self.playlist.frame)
 
-    def get_current_container(self) -> VideoContainer | ImageSequenceContainer:
+    def get_current_container(
+            self) -> VideoContainer | ImageSequenceContainer | MultiContainer:
         """
         Return media container at current frame.
         """
@@ -121,7 +133,8 @@ class Session:
         return self.annotations.get((container.id, relative_frame))
 
     def get_container(
-            self, container_id) -> VideoContainer | ImageSequenceContainer:
+            self, container_id
+            ) -> VideoContainer | ImageSequenceContainer | MultiContainer:
         frame = self.playlist.first_frames[container_id]
         return self.playlist.frames_containers[frame]
 
@@ -181,9 +194,7 @@ class Session:
     def serialize(self):
         return {
             'version': VERSION,
-            'containers': [
-                [container.id, container.path, container.metadata]
-                for container in self.playlist.containers],
+            'containers': [c.serialize() for c in self.playlist.containers],
             'annotations': [
                 [container_id, frame, model.serialize()]
                 for (container_id, frame), model in self.annotations.items()],

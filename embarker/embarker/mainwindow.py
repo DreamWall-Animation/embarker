@@ -105,8 +105,8 @@ class EmbarkerMainWindow(QtWidgets.QMainWindow):
         self.actionregistry.create_actions()
 
         playback_actions = (
-            'PrevAnnotation', 'PrevVideo', 'PrevFrame', 'Stop', 'PlayPause',
-            'NextFrame', 'NextVideo', 'NextAnnotation')
+            'PrevAnnotation', 'PrevMedia', 'PrevFrame', 'Stop', 'PlayPause',
+            'NextFrame', 'NextMedia', 'NextAnnotation')
         playback_buttons = []
         for action_id in playback_actions:
             button = QtWidgets.QToolButton()
@@ -127,7 +127,7 @@ class EmbarkerMainWindow(QtWidgets.QMainWindow):
         file_toolbar.setWindowTitle('Files')
         file_toolbar.setObjectName('Files')
         file_toolbar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
-        file_toolbar.addAction(self.actionregistry.get('OpenVideos'))
+        file_toolbar.addAction(self.actionregistry.get('OpenMedias'))
         file_toolbar.addAction(self.actionregistry.get('OpenSession'))
         file_toolbar.addAction(self.actionregistry.get('SaveSession'))
         file_toolbar.addAction(self.actionregistry.get('ExportImage'))
@@ -287,16 +287,16 @@ class EmbarkerMainWindow(QtWidgets.QMainWindow):
         file_menu.addAction(self.actionregistry.get('OpenSession'))
         file_menu.addMenu(self.recent_session_menu)
         file_menu.addSeparator()
-        file_menu.addAction(self.actionregistry.get('OpenVideos'))
+        file_menu.addAction(self.actionregistry.get('OpenMedias'))
         file_menu.addAction(self.actionregistry.get('ImportPlaylist'))
         file_menu.addAction(self.actionregistry.get(
             'ImportSessionAnnotations'))
         file_menu.addSeparator()
         file_menu.addAction(self.actionregistry.get('SaveSession'))
         file_menu.addAction(self.actionregistry.get('SaveSessionAs'))
-        file_menu.addAction(self.actionregistry.get('ExportVideoSessionAs'))
+        file_menu.addAction(self.actionregistry.get('ExportMediasSessionAs'))
         file_menu.addSeparator()
-        file_menu.addAction(self.actionregistry.get('RelocateFileVideos'))
+        file_menu.addAction(self.actionregistry.get('RelocateMediasFile'))
         file_menu.addSeparator()
         file_menu.addAction(self.actionregistry.get('Exit'))
 
@@ -316,11 +316,14 @@ class EmbarkerMainWindow(QtWidgets.QMainWindow):
         self.menuBar().addMenu(edit_menu)
 
         playlist_menu = QtWidgets.QMenu('Pla&ylist', self)
-        playlist_menu.addAction(self.actionregistry.get('AddVideos'))
-        playlist_menu.addAction(self.actionregistry.get('InsertVideos'))
-        playlist_menu.addAction(self.actionregistry.get('InsertVideosAfter'))
+        playlist_menu.addAction(self.actionregistry.get('AddMedias'))
+        playlist_menu.addAction(self.actionregistry.get('InsertMedias'))
+        playlist_menu.addAction(self.actionregistry.get('InsertMediasAfter'))
         playlist_menu.addSeparator()
-        playlist_menu.addAction(self.actionregistry.get('RemoveCurrentVideo'))
+        playlist_menu.addAction(self.actionregistry.get('LoadComparisonMedia'))
+        playlist_menu.addAction(self.actionregistry.get('ClearComparisonMedia'))
+        playlist_menu.addSeparator()
+        playlist_menu.addAction(self.actionregistry.get('RemoveCurrentMedia'))
         self.menuBar().addMenu(playlist_menu)
 
         export_menu = QtWidgets.QMenu('E&xport')
@@ -479,13 +482,24 @@ class EmbarkerMainWindow(QtWidgets.QMainWindow):
     def sizeHint(self):
         return QtCore.QSize(1400, 800)
 
-    def prompt_for_video(self):
+    def prompt_for_media(self):
         filepaths, _ = QtWidgets.QFileDialog.getOpenFileNames(
-            self, 'Open videos', os.path.expanduser('~'),
+            self, 'Open medias', os.path.expanduser('~'),
             filter=' '.join(f'*.{e}' for e in EXTENSIONS))
         if filepaths:
             ebc.new_session()
-            ebc.load_videos(filepaths)
+            ebc.load_medias(filepaths)
+
+    def prompt_for_comparison(self):
+        filepath, _ = QtWidgets.QFileDialog.getOpenFileName(
+            self, 'Open media', os.path.expanduser('~'),
+            filter=' '.join(f'*.{e}' for e in EXTENSIONS))
+        if filepath:
+            container = ebc.get_session().get_current_container()
+            if container is None:
+                return QtWidgets.QMessageBox.critical(
+                    self, 'Error', 'Current timeline has no media to compare')
+            ebc.compare_container_with_file(filepath)
 
     def toggle_fullscreen(self):
         if not self.isFullScreen():

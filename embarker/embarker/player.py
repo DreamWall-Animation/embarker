@@ -40,7 +40,8 @@ void main() {
 }
 """
 
-# Before playback, we cache first frames of a number of following videos:
+
+# Before playback, we cache first frames of a number of following media:
 FIRST_FRAMES_CACHE_COUNT = 16
 
 

@@ -23,7 +23,7 @@ class MovieRelocator(QtWidgets.QWidget):
         self.replace.textEdited.connect(self.update_search_and_replace)
 
         self.alternate_source = QtWidgets.QPushButton(
-            get_icon('open_session.png'), 'Find source videos in folder.')
+            get_icon('open_session.png'), 'Find source medias in folder.')
         self.alternate_source.released.connect(
             self.look_up_in_alternate_source)
 
@@ -94,7 +94,7 @@ class MovieRelocator(QtWidgets.QWidget):
             self, 'Select directory')
         if not directory:
             return
-        self.model.repath_missing_videos(directory)
+        self.model.repath_missing_medias(directory)
 
     def select_session(self):
         self.file.clear()
@@ -118,37 +118,51 @@ class SessionFilesModel(QtCore.QAbstractListModel):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.session_data = None
+        self._containers = None
 
     def set_session_data(self, data):
         self.layoutAboutToBeChanged.emit()
         self.session_data = data
         self.layoutChanged.emit()
 
-    def repath_missing_videos(self, directory):
+    def containers(self):
+        if self._containers is None:
+            self._containers = []
+            for container in self.session_data['containers']:
+                if container['type'] != 'multi':
+                    self._containers.append(container)
+                    continue
+                for c in container['kwargs']['containers']:
+                    self._containers.append(c)
+        return self._containers
+
+    def repath_missing_medias(self, directory):
         self.layoutAboutToBeChanged.emit()
-        for container in self.session_data['containers']:
-            if os.path.exists(container[1]):
+        for container in self.containers():
+            path = get_container_path(container)
+            if os.path.exists(path):
                 continue
-            new_path = f'{directory}/{os.path.basename(container[1])}'
+            new_path = f'{directory}/{os.path.basename(path)}'
             if os.path.exists(new_path):
-                container[1] = new_path
+                set_container_path(container, path)
         self.layoutChanged.emit()
 
     def set_search_and_replace(self, search, replace):
         if not all((search, replace)):
             return
-        for container in self.session_data['containers']:
-            if os.path.exists(container[1]):
+        for container in self.containers():
+            path = get_container_path(container)
+            if os.path.exists(path):
                 continue
-            new_path = container[1].replace(search, replace)
+            new_path = path.replace(search, replace)
             if os.path.exists(os.path.expandvars(new_path)):
-                container[1] = new_path
+                set_container_path(container, path)
         self.layoutChanged.emit()
 
     def rowCount(self, _):
         if self.session_data is None:
             return 0
-        return len(self.session_data['containers'])
+        return len(list(self.containers()))
 
     def flags(self, _):
         return QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsEnabled
@@ -157,7 +171,7 @@ class SessionFilesModel(QtCore.QAbstractListModel):
         if not index.isValid():
             return
 
-        fp = self.session_data['containers'][index.row()][1]
+        fp = get_container_path(self.containers()[index.row()])
         if role in (QtCore.Qt.DisplayRole, QtCore.Qt.EditRole):
             return fp
 
@@ -167,3 +181,16 @@ class SessionFilesModel(QtCore.QAbstractListModel):
             color = QtGui.QColor(color)
             color.setAlpha(50)
             return color
+
+
+def get_container_path(container):
+    if container['type'] == 'video':
+        return container['kwargs']['video_path']
+    return container['kwargs']['path_pattern']
+
+
+def set_container_path(container, path):
+    if container['type'] == 'video':
+        container['kwargs']['video_path'] = path
+        return
+    container['kwargs']['path_pattern'] = path
