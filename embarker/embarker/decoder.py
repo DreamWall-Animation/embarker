@@ -1,6 +1,7 @@
 import os
 import glob
 import uuid
+from concurrent.futures import ThreadPoolExecutor
 
 import av
 import numpy as np
@@ -191,6 +192,8 @@ class MultiContainer:
         self._containers = list(containers)
         self.layout = layout  # "horizontal" | "vertical" | "grid"
         self.max_pixels = 2_073_600  # 1920×1080
+        self._last_frame_cache: dict[int, np.ndarray] = {}
+        self._executor = ThreadPoolExecutor(max_workers=len(self._containers))
 
     @property
     def has_alpha(self):
@@ -244,8 +247,11 @@ class MultiContainer:
         if frame < container.length:
             return container.decode_frame(frame)
         if isinstance(container, ImageSequenceContainer):
-            # Clamp to last available frame
-            return container.decode_frame(container.length - 1)
+            if container.id not in self._last_frame_cache:
+                print('store frame')
+                self._last_frame_cache[container.id] = container.decode_frame(
+                    container.length - 1)
+            return self._last_frame_cache[container.id]
         # VideoContainer: use stream metadata to build black frame without
         # decoding.
         h = container.stream.height
@@ -305,7 +311,8 @@ class MultiContainer:
         return np.concatenate([arr, pad], axis=1)
 
     def decode_frame(self, frame):
-        raw = [self._frame_or_fallback(c, frame) for c in self._containers]
+        raw = list(self._executor.map(
+            lambda c: self._frame_or_fallback(c, frame), self._containers))
         if not self.has_alpha:
             # Mixed or all-RGB: strip alpha from any RGBA frames
             raw = [f[..., :3] if f.shape[2] == 4 else f for f in raw]
