@@ -5,7 +5,7 @@ import uuid
 import av
 import numpy as np
 import OpenImageIO as oiio
-from PySide6 import QtGui
+from PySide6 import QtCore, QtGui
 
 from embarker.audio import create_silence_samples, extract_audio_samples
 
@@ -261,6 +261,24 @@ class MultiContainer:
         return result
 
     @staticmethod
+    def _resize_array(arr, new_h, new_w):
+        if arr.shape[0] == new_h and arr.shape[1] == new_w:
+            return arr
+        h, w, ch = arr.shape
+        arr_c = np.ascontiguousarray(arr)
+        fmt = (QtGui.QImage.Format.Format_RGBA8888 if ch == 4
+               else QtGui.QImage.Format.Format_RGB888)
+        img = QtGui.QImage(arr_c.data, w, h, arr_c.strides[0], fmt)
+        img = img.scaled(
+            new_w, new_h,
+            QtCore.Qt.AspectRatioMode.IgnoreAspectRatio,
+            QtCore.Qt.TransformationMode.SmoothTransformation)
+        ptr = img.bits()
+        bpl = img.bytesPerLine()
+        result = np.frombuffer(ptr, dtype=np.uint8).reshape((new_h, bpl))
+        return result[:, :new_w * ch].reshape((new_h, new_w, ch)).copy()
+
+    @staticmethod
     def _pad_height(arr, target_h):
         h = arr.shape[0]
         if h >= target_h:
@@ -284,14 +302,16 @@ class MultiContainer:
         frames = self._unify_channels(raw)
 
         if self.layout == 'horizontal':
-            target_h = frames[0].shape[0]
+            target_h = max(f.shape[0] for f in frames)
             return np.concatenate(
-                [self._pad_height(f, target_h) for f in frames], axis=1)
+                [self._resize_array(f, target_h, int(f.shape[1] * target_h / f.shape[0]))
+                 for f in frames], axis=1)
 
         if self.layout == 'vertical':
-            target_w = frames[0].shape[1]
+            target_w = max(f.shape[1] for f in frames)
             return np.concatenate(
-                [self._pad_width(f, target_w) for f in frames], axis=0)
+                [self._resize_array(f, int(f.shape[0] * target_w / f.shape[1]), target_w)
+                 for f in frames], axis=0)
 
         # grid
         n = len(frames)
