@@ -181,9 +181,7 @@ class Session:
     def serialize(self):
         return {
             'version': VERSION,
-            'containers': [
-                [container.id, container.path, container.metadata]
-                for container in self.playlist.containers],
+            'containers': [c.serialize() for c in self.playlist.containers],
             'annotations': [
                 [container_id, frame, model.serialize()]
                 for (container_id, frame), model in self.annotations.items()],

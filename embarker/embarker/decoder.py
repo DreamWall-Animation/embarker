@@ -40,6 +40,14 @@ class VideoContainer:
         self._reset_decoder()
         self._thumbnails = {}
 
+    def serialize(self):
+        return {
+            'type': 'video',
+            'kwargs': {
+                'video_path': self.path,
+                'metadata': self._metadata or None,
+                'container_id': self.id}}
+
     def _reset_decoder(self):
         self.video_frame = None
         self.container.seek(0)
@@ -137,6 +145,15 @@ class ImageSequenceContainer:
         self.audio_samples = None
         self.load_audio()
 
+    def serialize(self):
+        return {
+            'type': 'image',
+            'kwargs': {
+                'path_pattern': self.path,
+                'fps': self.fps,
+                'metadata': self.metadata or None,
+                'container_id': self.id}}
+
     def load_audio(self):
         self.audio_samples = create_silence_samples(self.duration)
 
@@ -187,13 +204,30 @@ class ImageSequenceContainer:
 
 
 class MultiContainer:
-    def __init__(self, containers, layout='horizontal', container_id=None):
+    def __init__(
+            self, containers,
+            layout='horizontal',
+            container_id=None,
+            max_pixels=2_073_600):
         self.id = container_id or str(uuid.uuid4())
         self._containers = list(containers)
         self.layout = layout  # "horizontal" | "vertical" | "grid"
-        self.max_pixels = 2_073_600  # 1920×1080
+        self.max_pixels = max_pixels  # default 2_073_600 = 1920×1080
         self._last_frame_cache: dict[int, np.ndarray] = {}
         self._executor = ThreadPoolExecutor(max_workers=len(self._containers))
+
+    def serialize(self):
+        return {
+            'type': 'multi',
+            'kwargs': {
+                'containers': [c.serialize() for c in self._containers],
+                'layout': self.layout,
+                'container_id': self.id}}
+
+    @staticmethod
+    def deserialize(containers, **kwargs):
+        containers = [deserialize_container(c) for c in containers]
+        return MultiContainer(containers, **kwargs)
 
     @property
     def has_alpha(self):
@@ -365,6 +399,15 @@ class MultiContainer:
         return self._resize_array(arr, int(h * scale), int(w * scale))
 
 
+def deserialize_container(data):
+    cls = {
+        'video': VideoContainer,
+        'image': ImageSequenceContainer,
+        'multi': MultiContainer.deserialize,
+    }[data['type']]
+    return cls(**data['kwargs'])
+
+
 def get_container(video_path, metadata=None, container_id=None):
     video_path = os.path.expandvars(video_path)
     if video_path.endswith(VIDEO_EXTENSIONS):
@@ -399,8 +442,7 @@ def numpy_to_qpixmap(array: np.ndarray) -> QtGui.QPixmap:
             width,
             height,
             bytes_per_line,
-            QtGui.QImage.Format_Grayscale8,
-        ).copy()
+            QtGui.QImage.Format_Grayscale8).copy()
         return QtGui.QPixmap.fromImage(image)
 
     height, width, channels = array.shape

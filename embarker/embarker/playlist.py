@@ -4,7 +4,8 @@ from functools import lru_cache
 from PySide6 import QtCore
 import numpy as np
 
-from embarker.decoder import VideoContainer, get_container
+from embarker.decoder import (
+    VideoContainer, get_container, deserialize_container)
 from embarker import preferences
 
 
@@ -51,6 +52,16 @@ class Playlist(QtCore.QObject):
         # startup
         if video_paths:
             self.load_videos(video_paths)
+
+    def load_containers(self, containers_data):
+        self._containers.clear()
+
+        with ThreadPoolExecutor() as executor:
+            containers = executor.map(
+                lambda container_data: deserialize_container(container_data),
+                containers_data)
+            self._containers = [c for c in containers if c]
+        return self.build_playlist()
 
     def load_videos(self, video_paths, metadatas=None, container_ids=None):
         self._containers.clear()

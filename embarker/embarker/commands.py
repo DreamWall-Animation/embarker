@@ -1,5 +1,6 @@
 import os
 import time
+import glob
 import yaml
 import msgpack
 import datetime
@@ -15,9 +16,10 @@ from paintcanvas.shapes import Bitmap
 
 from embarker import callback
 from embarker import preferences
+from embarker.compatibility import ensure_session_compatibility
 from embarker.msgbox import ScrollMessageBox
-from embarker.session import Session
 from embarker.playlist import Playlist
+from embarker.session import Session
 
 
 def catch_error(func):
@@ -128,8 +130,10 @@ def open_session_data(data):
     """
     Open a session from data
     """
+    data = ensure_session_compatibility(data)
     callback.perform(callback.BEFORE_OPEN_SESSION, data)
 
+    _check_session_media_paths(data['containers'], session_folder=None)
     new_session()
     video_paths = [elt[1] for elt in data['containers']]
     if not all(os.path.exists(os.path.expandvars(p)) for p in video_paths):
@@ -182,6 +186,8 @@ def open_session(filepath=None, as_new_file=False):
     with open(filepath, 'rb') as f:
         data = msgpack.load(f)
 
+    data = ensure_session_compatibility(data)
+
     new_session()
     callback.perform(
         event=callback.BEFORE_OPEN_SESSION,
@@ -189,14 +195,10 @@ def open_session(filepath=None, as_new_file=False):
         session_data=data)
 
     session_folder = os.path.dirname(filepath)
-    video_paths = [elt[1] for elt in data['containers']]
-    video_paths = _check_session_videos_paths(video_paths, session_folder)
-    container_ids = [elt[0] for elt in data['containers']]
-    metadatas = [elt[2] for elt in data['containers']]
-    load_videos(
-        video_paths=video_paths,
-        metadatas=metadatas,
-        container_ids=container_ids)
+
+    _check_session_media_paths(data['containers'], session_folder)
+    get_session().playlist.load_containers(data['containers'])
+
     get_session().annotations.clear()
     for id_, frame, annotation_data in data['annotations']:
         model = CanvasModel(viewportmapper=get_main_window().viewportmapper)
@@ -207,12 +209,17 @@ def open_session(filepath=None, as_new_file=False):
     if not as_new_file:
         get_session().filepath = filepath
     get_session().metadata = data.get('metadata', {})
+
     get_main_window().update_title()
     get_main_window().canvas.reset()
     get_main_window().drawn()
     get_main_window().autosave.restart_timer()
-    set_recent_session_file(filepath)
+    get_main_window().timeline.update_values()
 
+    set_recent_session_file(filepath)
+    set_playback_end(get_session().playlist.frames_count - 1)
+
+    callback.perform(callback.AFTER_PLAYLIST_CHANGED)
     callback.perform(callback.AFTER_OPEN_SESSION)
 
 
@@ -823,16 +830,34 @@ def set_canvas_comment(comment):
     get_main_window().drawn()
 
 
-def _check_session_videos_paths(video_paths, session_folder):
-    result = []
-    for video_path in video_paths:
-        if os.path.exists(os.path.expandvars(video_path)):
-            result.append(video_path)
-            continue
-        alternate_path = f'{session_folder}/{os.path.basename(video_path)}'
-        if os.path.exists(alternate_path):
-            print(f'Video file repath: {video_path} -> {alternate_path}')
-            result.append(alternate_path)
-            continue
-        raise FileNotFoundError(f'{video_path}: not found')
-    return result
+def _check_session_media_paths(containers_data, session_folder):
+    for container_data in containers_data:
+        _check_container_path(container_data, None)
+
+
+def _check_container_path(container_data, session_folder=None):
+    if container_data['type'] == 'video':
+        path = container_data['kwargs']['video_path']
+        if os.path.exists(os.path.expandvars(path)):
+            return
+        if session_folder:
+            alternate_path = f'{session_folder}/{os.path.basename(path)}'
+            if os.path.exists(alternate_path):
+                container_data['kwargs']['video_path'] = alternate_path
+                return
+        raise FileNotFoundError(f'{path}: not found')
+
+    elif container_data['type'] == 'image':
+        path = os.path.expandvars(container_data['kwargs']['path_pattern'])
+        if glob.glob(path):
+            return
+        if session_folder:
+            alternate_path = f'{session_folder}/{os.path.basename(path)}'
+            if glob.glob(alternate_path):
+                container_data['kwargs']['path_pattern'] = alternate_path
+                return
+        raise FileNotFoundError(f'{path}: not found')
+
+    elif container_data['type'] == 'multi':
+        for data in container_data['kwargs']['containers']:
+            _check_container_path(data, session_folder)
