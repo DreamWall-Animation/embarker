@@ -14,7 +14,7 @@ class Playlist(QtCore.QObject):
 
     def __init__(
             self,
-            video_paths=None,
+            media_paths=None,
             buffer_pre_size=20,
             buffer_post_size=60):
 
@@ -36,7 +36,7 @@ class Playlist(QtCore.QObject):
 
         # by frame dicts
         self.frames_paths: dict[int, str] = dict()
-        self.frames_frames: dict[int, int] = dict()  # global to video index
+        self.frames_frames: dict[int, int] = dict()  # global to media index
         self.frames_times: dict[int, float] = dict()
         self.frames_containers: dict[int, VideoContainer] = dict()
         self.frames_images: dict[int, object] = dict()
@@ -50,8 +50,8 @@ class Playlist(QtCore.QObject):
         self._audio_samples_source: np.array = np.array([])
 
         # startup
-        if video_paths:
-            self.load_videos(video_paths)
+        if media_paths:
+            self.load_medias(media_paths)
 
     def load_containers(self, containers_data):
         self._containers.clear()
@@ -63,15 +63,15 @@ class Playlist(QtCore.QObject):
             self._containers = [c for c in containers if c]
         return self.build_playlist()
 
-    def load_videos(self, video_paths, metadatas=None, container_ids=None):
+    def load_medias(self, media_paths, metadatas=None, container_ids=None):
         self._containers.clear()
-        metadatas = metadatas or [None] * len(video_paths)
-        container_ids = container_ids or [None] * len(video_paths)
+        metadatas = metadatas or [None] * len(media_paths)
+        container_ids = container_ids or [None] * len(media_paths)
 
         with ThreadPoolExecutor() as executor:
             containers = executor.map(
                 lambda args: get_container(*args),
-                zip(video_paths, metadatas, container_ids))
+                zip(media_paths, metadatas, container_ids))
             self._containers = [c for c in containers if c]
 
         return self.build_playlist()
@@ -160,15 +160,15 @@ class Playlist(QtCore.QObject):
         self._containers = []
         self.build_playlist()
 
-    def remove_video(self, index=None):
+    def remove_media(self, index=None):
         index = self.get_container_index() if index is None else index
         self._containers.pop(index)
         self.build_playlist()
 
-    def replace_video(
-            self, video_path, container_id, metadata=None, keep_id=True):
+    def replace_media(
+            self, media_path, container_id, metadata=None, keep_id=True):
         container = get_container(
-            video_path, metadata,
+            media_path, metadata,
             container_id if keep_id else None)
         if not container:
             return
@@ -176,17 +176,17 @@ class Playlist(QtCore.QObject):
         self._containers[index] = container
         self.build_playlist()
 
-    def add_videos(
-            self, video_paths, metadatas=None, container_ids=None, index=-1):
+    def add_medias(
+            self, media_paths, metadatas=None, container_ids=None, index=-1):
         index = len(self._containers) if index == -1 else index
         index = self.get_container_index() if index is None else index
-        metadatas = metadatas or [None] * len(video_paths)
-        container_ids = container_ids or [None] * len(video_paths)
+        metadatas = metadatas or [None] * len(media_paths)
+        container_ids = container_ids or [None] * len(media_paths)
 
         with ThreadPoolExecutor() as executor:
             containers = executor.map(
                 lambda args: get_container(*args),
-                zip(video_paths, metadatas, container_ids))
+                zip(media_paths, metadatas, container_ids))
             new_containers = [c for c in containers if c]
 
         for i, container in enumerate(new_containers):

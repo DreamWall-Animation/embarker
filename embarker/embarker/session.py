@@ -5,7 +5,7 @@ from viewportmapper import NDCViewportMapper
 from paintcanvas import CanvasModel, render_annotation
 from embarker.appinfos import VERSION
 from embarker.decoder import (
-    VideoContainer, ImageSequenceContainer,
+    VideoContainer, ImageSequenceContainer, MultiContainer,
     qpixmap_to_ndarray, numpy_to_qpixmap)
 from embarker.onionskin import OnionSkin
 from embarker.playlist import Playlist
@@ -100,7 +100,8 @@ class Session:
         "Return the current container index"
         return self.playlist.get_container_index(self.playlist.frame)
 
-    def get_current_container(self) -> VideoContainer | ImageSequenceContainer:
+    def get_current_container(
+            self) -> VideoContainer | ImageSequenceContainer | MultiContainer:
         """
         Return media container at current frame.
         """
@@ -121,7 +122,8 @@ class Session:
         return self.annotations.get((container.id, relative_frame))
 
     def get_container(
-            self, container_id) -> VideoContainer | ImageSequenceContainer:
+            self, container_id
+            ) -> VideoContainer | ImageSequenceContainer | MultiContainer:
         frame = self.playlist.first_frames[container_id]
         return self.playlist.frames_containers[frame]
 

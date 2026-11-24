@@ -23,7 +23,7 @@ class MovieRelocator(QtWidgets.QWidget):
         self.replace.textEdited.connect(self.update_search_and_replace)
 
         self.alternate_source = QtWidgets.QPushButton(
-            get_icon('open_session.png'), 'Find source videos in folder.')
+            get_icon('open_session.png'), 'Find source medias in folder.')
         self.alternate_source.released.connect(
             self.look_up_in_alternate_source)
 
@@ -94,7 +94,7 @@ class MovieRelocator(QtWidgets.QWidget):
             self, 'Select directory')
         if not directory:
             return
-        self.model.repath_missing_videos(directory)
+        self.model.repath_missing_medias(directory)
 
     def select_session(self):
         self.file.clear()
@@ -136,7 +136,7 @@ class SessionFilesModel(QtCore.QAbstractListModel):
                     self._containers.append(c)
         return self._containers
 
-    def repath_missing_videos(self, directory):
+    def repath_missing_medias(self, directory):
         self.layoutAboutToBeChanged.emit()
         for container in self.containers():
             path = get_container_path(container)

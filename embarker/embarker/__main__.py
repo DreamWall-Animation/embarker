@@ -8,7 +8,7 @@ Features
     Support for freehand drawing with multiple annotation layers.
 
     Real-Time RAM Player
-    Video playback fully loaded into RAM for frame-accurate real-time
+    Media playback fully loaded into RAM for frame-accurate real-time
     performance.
 
     Audio Scrubbing
@@ -47,7 +47,7 @@ FROZEN = getattr(sys, 'frozen', False)
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('filepaths', nargs='*', help='List of videos file paths',)
+parser.add_argument('filepaths', nargs='*', help='List of medias file paths',)
 parser.add_argument('-pp', '--python_plugins', nargs='+', help='List python plugin module')
 parser.add_argument('-pl', '--playlist_file', help='Playlist filepath')
 parser.add_argument('-s', '--session_file', help='Session filepath')
@@ -135,9 +135,9 @@ window.pluginregistry.initialize_all_plugins()
 
 
 if args.filepaths:
-    video_paths = [p for p in args.filepaths if p.endswith(EXTENSIONS)]
-    video_paths = [os.path.expandvars(p) for p in video_paths]
-    ebc.load_videos(video_paths)
+    media_paths = [p for p in args.filepaths if p.endswith(EXTENSIONS)]
+    media_paths = [os.path.expandvars(p) for p in media_paths]
+    ebc.load_medias(media_paths)
 
 
 if args.debug:

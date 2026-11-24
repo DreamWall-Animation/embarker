@@ -27,4 +27,3 @@ def ensure_session_compatibility(data):
         data['containers'] = containers
 
     return data
-
