@@ -403,8 +403,7 @@ def deserialize_container(data):
     cls = {
         'video': VideoContainer,
         'image': ImageSequenceContainer,
-        'multi': MultiContainer.deserialize,
-    }[data['type']]
+        'multi': MultiContainer.deserialize}[data['type']]
     return cls(**data['kwargs'])
 
 
