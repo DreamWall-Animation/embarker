@@ -1,6 +1,7 @@
 import os
 import time
 import glob
+import uuid
 import yaml
 import msgpack
 import datetime
@@ -19,7 +20,7 @@ from embarker import preferences
 from embarker.compatibility import ensure_session_compatibility
 from embarker.msgbox import ScrollMessageBox
 from embarker.playlist import Playlist
-from embarker.decoder import EXTENSIONS
+from embarker.decoder import EXTENSIONS, MultiContainer, build_container
 from embarker.session import Session
 
 
@@ -311,8 +312,25 @@ def import_preferences():
         1, lambda: get_main_window().setGeometry(geometry))
 
 
-def compare_container_with_file():
-    ...
+@catch_error
+@busy_cursor
+@log_debug_command
+def compare_container_with_file(
+        media_path: str,
+        container_id: str | None = None):
+    playlist = get_session().playlist
+    container = (
+        get_session().get_container(container_id)
+        if container_id else get_session().get_current_container())
+    side_container = build_container(media_path)
+    if isinstance(container, MultiContainer):
+        container.add_side_container(container)
+    else:
+        main_container = MultiContainer(
+            [container, side_container], container_id=container.id)
+        container.id = str(uuid.uuid4())
+        playlist.replace_container(container.id, main_container)
+    playlist.build_playlist()
 
 
 @catch_error

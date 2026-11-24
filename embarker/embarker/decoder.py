@@ -210,11 +210,17 @@ class MultiContainer:
             container_id=None,
             max_pixels=2_073_600):
         self.id = container_id or str(uuid.uuid4())
-        self._containers = list(containers)
         self.layout = layout  # "horizontal" | "vertical" | "grid"
         self.max_pixels = max_pixels  # default 2_073_600 = 1920×1080
+
+        self._containers = list(containers)
         self._last_frame_cache: dict[int, np.ndarray] = {}
         self._executor = ThreadPoolExecutor(max_workers=len(self._containers))
+
+    def add_side_container(self, container):
+        self._containers.append(container)
+        self._executor = ThreadPoolExecutor(max_workers=len(self._containers))
+        self._last_frame_cache.clear()
 
     def serialize(self):
         return {
@@ -293,80 +299,31 @@ class MultiContainer:
         channels = 4 if container.has_alpha else 3
         return np.zeros((h, w, channels), dtype=np.uint8)
 
-    @staticmethod
-    def _unify_channels(arrays):
-        max_ch = max(a.shape[2] for a in arrays)
-        result = []
-        for arr in arrays:
-            ch = arr.shape[2]
-            if ch == max_ch:
-                result.append(arr)
-            elif ch == 3 and max_ch == 4:
-                alpha = np.full(arr.shape[:2] + (1,), 255, dtype=arr.dtype)
-                result.append(np.concatenate([arr, alpha], axis=2))
-            else:
-                result.append(arr[..., :max_ch])
-        return result
-
-    @staticmethod
-    def _resize_array(arr, new_h, new_w):
-        if arr.shape[0] == new_h and arr.shape[1] == new_w:
-            return arr
-        h, w, ch = arr.shape
-        arr_c = np.ascontiguousarray(arr)
-        fmt = (QtGui.QImage.Format.Format_RGBA8888 if ch == 4
-               else QtGui.QImage.Format.Format_RGB888)
-        img = QtGui.QImage(arr_c.data, w, h, arr_c.strides[0], fmt)
-        img = img.scaled(
-            new_w, new_h,
-            QtCore.Qt.AspectRatioMode.IgnoreAspectRatio,
-            QtCore.Qt.TransformationMode.SmoothTransformation)
-        ptr = img.bits()
-        bpl = img.bytesPerLine()
-        result = np.frombuffer(ptr, dtype=np.uint8).reshape((new_h, bpl))
-        return result[:, :new_w * ch].reshape((new_h, new_w, ch)).copy()
-
-    @staticmethod
-    def _pad_height(arr, target_h):
-        h = arr.shape[0]
-        if h >= target_h:
-            return arr[:target_h]
-        pad = np.zeros(
-            (target_h - h, arr.shape[1], arr.shape[2]), dtype=arr.dtype)
-        return np.concatenate([arr, pad], axis=0)
-
-    @staticmethod
-    def _pad_width(arr, target_w):
-        w = arr.shape[1]
-        if w >= target_w:
-            return arr[:, :target_w]
-        pad = np.zeros(
-            (arr.shape[0], target_w - w, arr.shape[2]), dtype=arr.dtype)
-        return np.concatenate([arr, pad], axis=1)
-
     def decode_frame(self, frame):
         raw = list(self._executor.map(
             lambda c: self._frame_or_fallback(c, frame), self._containers))
         if not self.has_alpha:
             # Mixed or all-RGB: strip alpha from any RGBA frames
             raw = [f[..., :3] if f.shape[2] == 4 else f for f in raw]
-        frames = self._unify_channels(raw)
+        frames = _unify_channels(raw)
 
         if self.layout == 'horizontal':
             target_h = max(f.shape[0] for f in frames)
             resized_arrays = [
-                self._resize_array(
+                _resize_array(
                     f, target_h, int(f.shape[1] * target_h / f.shape[0]))
                 for f in frames]
-            return self._apply_max_pixels(np.concatenate(resized_arrays, axis=1))
+            return self._apply_max_pixels(
+                np.concatenate(resized_arrays, axis=1))
 
         if self.layout == 'vertical':
             target_w = max(f.shape[1] for f in frames)
             resized_arrays = [
-                self._resize_array(
+                _resize_array(
                     f, int(f.shape[0] * target_w / f.shape[1]), target_w)
                 for f in frames]
-            return self._apply_max_pixels(np.concatenate(resized_arrays, axis=0))
+            return self._apply_max_pixels(
+                np.concatenate(resized_arrays, axis=0))
 
         # grid
         n = len(frames)
@@ -377,8 +334,7 @@ class MultiContainer:
         ch = frames[0].shape[2]
 
         normalized = [
-            self._pad_width(self._pad_height(f, target_h), target_w)
-            for f in frames]
+            _pad_width(_pad_height(f, target_h), target_w) for f in frames]
 
         if len(normalized) < rows * cols:
             blank = np.zeros((target_h, target_w, ch), dtype=frames[0].dtype)
@@ -396,7 +352,59 @@ class MultiContainer:
         if self.max_pixels is None or h * w <= self.max_pixels:
             return arr
         scale = (self.max_pixels / (h * w)) ** 0.5
-        return self._resize_array(arr, int(h * scale), int(w * scale))
+        return _resize_array(arr, int(h * scale), int(w * scale))
+
+
+def _unify_channels(arrays):
+    max_ch = max(a.shape[2] for a in arrays)
+    result = []
+    for arr in arrays:
+        ch = arr.shape[2]
+        if ch == max_ch:
+            result.append(arr)
+        elif ch == 3 and max_ch == 4:
+            alpha = np.full(arr.shape[:2] + (1,), 255, dtype=arr.dtype)
+            result.append(np.concatenate([arr, alpha], axis=2))
+        else:
+            result.append(arr[..., :max_ch])
+    return result
+
+
+def _resize_array(arr, new_h, new_w):
+    if arr.shape[0] == new_h and arr.shape[1] == new_w:
+        return arr
+    h, w, ch = arr.shape
+    arr_c = np.ascontiguousarray(arr)
+    fmt = (
+        QtGui.QImage.Format.Format_RGBA8888 if ch == 4
+        else QtGui.QImage.Format.Format_RGB888)
+    img = QtGui.QImage(arr_c.data, w, h, arr_c.strides[0], fmt)
+    img = img.scaled(
+        new_w, new_h,
+        QtCore.Qt.AspectRatioMode.IgnoreAspectRatio,
+        QtCore.Qt.TransformationMode.SmoothTransformation)
+    ptr = img.bits()
+    bpl = img.bytesPerLine()
+    result = np.frombuffer(ptr, dtype=np.uint8).reshape((new_h, bpl))
+    return result[:, :new_w * ch].reshape((new_h, new_w, ch)).copy()
+
+
+def _pad_height(arr, target_h):
+    h = arr.shape[0]
+    if h >= target_h:
+        return arr[:target_h]
+    pad = np.zeros(
+        (target_h - h, arr.shape[1], arr.shape[2]), dtype=arr.dtype)
+    return np.concatenate([arr, pad], axis=0)
+
+
+def _pad_width(arr, target_w):
+    w = arr.shape[1]
+    if w >= target_w:
+        return arr[:, :target_w]
+    pad = np.zeros(
+        (arr.shape[0], target_w - w, arr.shape[2]), dtype=arr.dtype)
+    return np.concatenate([arr, pad], axis=1)
 
 
 def deserialize_container(data):
@@ -407,24 +415,24 @@ def deserialize_container(data):
     return cls(**data['kwargs'])
 
 
-def get_container(video_path, metadata=None, container_id=None):
-    video_path = os.path.expandvars(video_path)
-    if video_path.endswith(VIDEO_EXTENSIONS):
+def build_container(media_path, metadata=None, container_id=None):
+    media_path = os.path.expandvars(media_path)
+    if media_path.endswith(VIDEO_EXTENSIONS):
         try:
             return VideoContainer(
-                video_path=video_path,
+                video_path=media_path,
                 metadata=metadata,
                 container_id=container_id)
         except RuntimeError:
-            print(f'Could not open {video_path}')
+            print(f'Could not open {media_path}')
     else:
         try:
             return ImageSequenceContainer(
-                path_pattern=video_path,
+                path_pattern=media_path,
                 metadata=metadata,
                 container_id=container_id)
         except IndexError:
-            print(f'Could not open {video_path}')
+            print(f'Could not open {media_path}')
 
 
 def numpy_to_qpixmap(array: np.ndarray) -> QtGui.QPixmap:

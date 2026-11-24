@@ -320,6 +320,8 @@ class EmbarkerMainWindow(QtWidgets.QMainWindow):
         playlist_menu.addAction(self.actionregistry.get('InsertMedias'))
         playlist_menu.addAction(self.actionregistry.get('InsertMediasAfter'))
         playlist_menu.addSeparator()
+        playlist_menu.addAction(self.actionregistry.get('LoadComparisonMedia'))
+        playlist_menu.addSeparator()
         playlist_menu.addAction(self.actionregistry.get('RemoveCurrentMedia'))
         self.menuBar().addMenu(playlist_menu)
 
@@ -486,6 +488,17 @@ class EmbarkerMainWindow(QtWidgets.QMainWindow):
         if filepaths:
             ebc.new_session()
             ebc.load_medias(filepaths)
+
+    def prompt_for_comparison(self):
+        filepath, _ = QtWidgets.QFileDialog.getOpenFileName(
+            self, 'Open media', os.path.expanduser('~'),
+            filter=' '.join(f'*.{e}' for e in EXTENSIONS))
+        if filepath:
+            container = ebc.get_session().get_current_container()
+            if container is None:
+                return QtWidgets.QMessageBox.critical(
+                    self, 'Error', 'Current timeline has no media to compare')
+            ebc.compare_container_with_file(filepath)
 
     def toggle_fullscreen(self):
         if not self.isFullScreen():

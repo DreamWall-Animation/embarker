@@ -242,6 +242,16 @@ def get_default_actions(mainwindow):
             'shortcut':  QtGui.QKeySequence(Qt.CTRL | Qt.SHIFT | Qt.Key_I),
         },
         {
+            'id': 'LoadComparisonMedia',
+            'text': 'Load comparison media',
+            'category': 'Playlist',
+            'icon': None,
+            'group': None,
+            'method': mainwindow.prompt_for_comparison,
+            'checkable': False,
+            'shortcut': None,
+        },
+        {
             'id': 'PreferencesWindow',
             'text': 'Preferences',
             'category': 'Global',

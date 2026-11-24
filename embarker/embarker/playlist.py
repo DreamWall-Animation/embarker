@@ -5,7 +5,7 @@ from PySide6 import QtCore
 import numpy as np
 
 from embarker.decoder import (
-    VideoContainer, get_container, deserialize_container)
+    VideoContainer, build_container, deserialize_container)
 from embarker import preferences
 
 
@@ -70,7 +70,7 @@ class Playlist(QtCore.QObject):
 
         with ThreadPoolExecutor() as executor:
             containers = executor.map(
-                lambda args: get_container(*args),
+                lambda args: build_container(*args),
                 zip(media_paths, metadatas, container_ids))
             self._containers = [c for c in containers if c]
 
@@ -165,9 +165,14 @@ class Playlist(QtCore.QObject):
         self._containers.pop(index)
         self.build_playlist()
 
+    def replace_container(self, container_id, container):
+        index = [c.id for c in self._containers].index(container_id)
+        self._containers[index] = container
+        self.build_playlist()
+
     def replace_media(
             self, media_path, container_id, metadata=None, keep_id=True):
-        container = get_container(
+        container = build_container(
             media_path, metadata,
             container_id if keep_id else None)
         if not container:
@@ -185,7 +190,7 @@ class Playlist(QtCore.QObject):
 
         with ThreadPoolExecutor() as executor:
             containers = executor.map(
-                lambda args: get_container(*args),
+                lambda args: build_container(*args),
                 zip(media_paths, metadatas, container_ids))
             new_containers = [c for c in containers if c]
 
