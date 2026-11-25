@@ -61,6 +61,16 @@ def get_default_actions(mainwindow):
             'shortcut': 'CTRL+C',
         },
         {
+            'id': 'ClearComparisonMedia',
+            'text': 'Clear comparison media',
+            'category': 'Playlist',
+            'icon': None,
+            'group': None,
+            'method': ebc.clear_container_comparisons,
+            'checkable': False,
+            'shortcut': None,
+        },
+        {
             'id': 'DefaultState',
             'text': 'Restore default workspace',
             'category': 'View',

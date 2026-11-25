@@ -317,7 +317,8 @@ def import_preferences():
 @log_debug_command
 def compare_container_with_file(
         media_path: str,
-        container_id: str | None = None):
+        container_id: str | None = None,
+        update_playlist: bool = True):
     playlist = get_session().playlist
     container = (
         get_session().get_container(container_id)
@@ -330,7 +331,38 @@ def compare_container_with_file(
             [container, side_container], container_id=container.id)
         container.id = str(uuid.uuid4())
         playlist.replace_container(container.id, main_container)
-    playlist.build_playlist()
+    if update_playlist:
+        playlist.build_playlist()
+
+
+@catch_error
+@busy_cursor
+@log_debug_command
+def clear_container_comparisons(
+        container_id: str | None = None,
+        side_container_ids_to_remove: list | None = None,
+        update_playlist: bool = True):
+    container = (
+        get_session().get_container(container_id)
+        if container_id else get_session().get_current_container())
+    if not isinstance(container, MultiContainer):
+        return
+    if side_container_ids_to_remove is None:
+        side_container_ids_to_remove = [
+            c.id for c in container.side_containers]
+    container.delete_side_containers(side_container_ids_to_remove)
+
+    playlist = get_session().playlist
+    # No comparison left, replace MutliContainer by the main container in
+    # playlist
+    if len(container.side_containers) == 0:
+        container.main_container.id = container.id
+        index = playlist.containers.index(container)
+        playlist.containers.insert(index, container.main_container)
+        playlist.containers.remove(container)
+
+    if update_playlist:
+        playlist.build_playlist()
 
 
 @catch_error

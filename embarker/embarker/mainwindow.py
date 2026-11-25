@@ -321,6 +321,7 @@ class EmbarkerMainWindow(QtWidgets.QMainWindow):
         playlist_menu.addAction(self.actionregistry.get('InsertMediasAfter'))
         playlist_menu.addSeparator()
         playlist_menu.addAction(self.actionregistry.get('LoadComparisonMedia'))
+        playlist_menu.addAction(self.actionregistry.get('ClearComparisonMedia'))
         playlist_menu.addSeparator()
         playlist_menu.addAction(self.actionregistry.get('RemoveCurrentMedia'))
         self.menuBar().addMenu(playlist_menu)

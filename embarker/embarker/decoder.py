@@ -219,6 +219,19 @@ class MultiContainer:
         self._last_frame_cache: dict[int, np.ndarray] = {}
         self._executor = ThreadPoolExecutor(max_workers=len(self._containers))
 
+    @property
+    def main_container(self):
+        return self._containers[0]
+
+    @property
+    def side_containers(self):
+        return self._containers[1:]
+
+    def delete_side_containers(self, ids):
+        self._containers = [
+            container for i, container in enumerate(self._containers) if
+            i == 0 or container.id not in ids]
+
     def add_side_container(self, container):
         self._containers.append(container)
         self._executor = ThreadPoolExecutor(max_workers=len(self._containers))
