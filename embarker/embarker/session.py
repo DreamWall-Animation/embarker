@@ -26,6 +26,17 @@ class Session:
         self.annotations = {
             k: v for k, v in self.annotations.items() if not v.is_null()}
 
+    def clear_container_cache(self, container_id):
+        start = self.playlist.first_frames[container_id]
+        container = self.get_container(container_id)
+        end = start + container.length
+        for frame in range(start, end + 1):
+            try:
+                del self.playlist.frames_images[frame]
+            except KeyError:
+                # Frame is not cached.
+                pass
+
     def get_annotation_at(
             self,
             frame: int,

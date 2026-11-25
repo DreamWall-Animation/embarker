@@ -210,8 +210,10 @@ class MultiContainer:
             container_id=None,
             max_pixels=2_073_600):
         self.id = container_id or str(uuid.uuid4())
-        self.layout = layout  # "horizontal" | "vertical" | "grid"
+        self.layout = layout  # "horizontal" | "vertical" | "grid" | "thumbnail"
         self.max_pixels = max_pixels  # default 2_073_600 = 1920×1080
+        self.thumbnail_height_proportion = 0.3
+        self.thumbnail_opacity = 1.0  # 0.0 = fully transparent, 1.0 = opaque
 
         self._containers = list(containers)
         self._last_frame_cache: dict[int, np.ndarray] = {}
@@ -308,24 +310,58 @@ class MultiContainer:
         frames = _unify_channels(raw)
 
         if self.layout == 'horizontal':
-            target_h = max(f.shape[0] for f in frames)
-            resized_arrays = [
-                _resize_array(
-                    f, target_h, int(f.shape[1] * target_h / f.shape[0]))
-                for f in frames]
-            return self._apply_max_pixels(
-                np.concatenate(resized_arrays, axis=1))
+            return self.combine_horizontal_layout(frames)
 
         if self.layout == 'vertical':
-            target_w = max(f.shape[1] for f in frames)
-            resized_arrays = [
-                _resize_array(
-                    f, int(f.shape[0] * target_w / f.shape[1]), target_w)
-                for f in frames]
-            return self._apply_max_pixels(
-                np.concatenate(resized_arrays, axis=0))
+            return self.combine_vertical_layout(frames)
 
-        # grid
+        if self.layout == 'thumbnail':
+            return self.combine_thumnbails_layout(frames)
+
+        return self.combine_grid_layout(frames)
+
+    def combine_horizontal_layout(self, frames):
+        target_h = max(f.shape[0] for f in frames)
+        resized_arrays = [
+            _resize_array(
+                f, target_h, int(f.shape[1] * target_h / f.shape[0]))
+            for f in frames]
+        return self._apply_max_pixels(np.concatenate(resized_arrays, axis=1))
+
+    def combine_vertical_layout(self, frames):
+        target_w = max(f.shape[1] for f in frames)
+        resized_arrays = [
+            _resize_array(
+                f, int(f.shape[0] * target_w / f.shape[1]), target_w)
+            for f in frames]
+        return self._apply_max_pixels(np.concatenate(resized_arrays, axis=0))
+
+    def combine_thumnbails_layout(self, frames):
+        main = frames[0]
+        main_h, main_w = main.shape[:2]
+        thumb_h = max(1, int(main_h * self.thumbnail_height_proportion))
+        result = main.copy()
+        x_offset = 0
+        for thumb_frame in frames[1:]:
+            ratio = thumb_frame.shape[1] / thumb_frame.shape[0]
+            thumb_w = max(1, int(thumb_h * ratio))
+            if x_offset + thumb_w > main_w:
+                break
+            resized = _resize_array(thumb_frame, thumb_h, thumb_w)
+            region = result[:thumb_h, x_offset:x_offset + thumb_w]
+            if self.thumbnail_opacity < 1.0:
+                a = self.thumbnail_opacity
+                blended = (
+                    a * resized.astype(np.float32)
+                    + (1 - a) * region.astype(np.float32)
+                ).astype(np.uint8)
+                result[:thumb_h, x_offset:x_offset + thumb_w] = blended
+            else:
+                result[:thumb_h, x_offset:x_offset + thumb_w] = resized
+            x_offset += thumb_w
+        return result
+
+    def combine_grid_layout(self, frames):
         n = len(frames)
         cols = int(np.ceil(np.sqrt(n)))
         rows = int(np.ceil(n / cols))
