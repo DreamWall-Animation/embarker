@@ -319,12 +319,18 @@ def import_preferences():
 def compare_container_with_file(
         media_path: str,
         container_id: str | None = None,
-        update_playlist: bool = True):
+        metadata: dict | None = None,
+        update_playlist: bool = True) -> MultiContainer:
+    metadata = metadata or {}
     playlist = get_session().playlist
     container = (
         get_session().get_container(container_id)
         if container_id else get_session().get_current_container())
     side_container = build_container(media_path)
+
+    for key, value in metadata.items():
+        side_container.set_metadata(key, value)
+
     if isinstance(container, MultiContainer):
         container.add_side_container(container)
     else:
@@ -332,8 +338,10 @@ def compare_container_with_file(
             [container, side_container], container_id=container.id)
         container.id = str(uuid.uuid4())
         playlist.replace_container(container.id, main_container)
+
     if update_playlist:
         playlist.build_playlist()
+    return container
 
 
 @catch_error
