@@ -25,6 +25,12 @@ Each entry in the playlist is defined as:
     key2: value2
     key3: value3
 
+- - c:/movie.002.mov  # Use a list for a side by side playlist
+    c:/movie.003.mov
+  - key1: value1
+    key2: value2
+    key3: value3
+
 - - c:/movie.002.mov
   - key1: value1
     key2: value2
@@ -51,7 +57,10 @@ Each entry in the playlist is defined as:
     }
   ],
   [
-    "c:/movie.002.mov",
+    [
+      "c:/movie.002.mov",
+      "c:/movie.003.mov",
+    ],
     {
       "key1": "value1",
       "key2": "value2",

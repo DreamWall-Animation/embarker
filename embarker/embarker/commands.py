@@ -20,7 +20,8 @@ from embarker import preferences
 from embarker.compatibility import ensure_session_compatibility
 from embarker.msgbox import ScrollMessageBox
 from embarker.playlist import Playlist
-from embarker.decoder import EXTENSIONS, MultiContainer, build_container
+from embarker.decoder import (
+    EXTENSIONS, MultiContainer, VideoContainer, build_container)
 from embarker.session import Session
 
 
@@ -360,6 +361,8 @@ def clear_container_comparisons(
         index = playlist.containers.index(container)
         playlist.containers.insert(index, container.main_container)
         playlist.containers.remove(container)
+        if isinstance(container.main_container, VideoContainer):
+            container.main_container.activate_sound()
 
     if update_playlist:
         playlist.build_playlist()
@@ -859,6 +862,25 @@ def toggle_dock(dock_object_name):
     if action is None:
         raise ValueError(f'Unkown dock name: {dock_object_name}')
     action.trigger()
+
+
+@catch_error
+@log_debug_command
+def set_all_comparison_layouts(layout: str):
+    """
+    layout: str = 'horizontal' | 'vertical' | 'grid' | 'thumbnail'
+    """
+    if layout not in ('horizontal', 'vertical', 'grid', 'thumbnail'):
+        raise ValueError(
+            f'{layout} is not a supported value. Supported values: '
+            '{"horizontal", "vertical", "grid", "thumbnail"}')
+
+    for container in get_session().playlist.containers:
+        if isinstance(container, MultiContainer):
+            container.layout = layout
+            get_session().clear_container_cache(container.id)
+
+    set_frame(get_frame())
 
 
 @catch_error

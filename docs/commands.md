@@ -17,7 +17,8 @@ image.save('c:/image.png')
 
 | Return | Function | Arguments |
 | :--- | :--- | :--- |
-| `None` | [`compare_container_with_file`](#compare_container_with_file) | `media_path, container_id=None` |
+| `None` | [`clear_container_comparisons`](#clear_container_comparisons) | `container_id=None, side_container_ids_to_remove=None, update_playlist=True` |
+| `None` | [`compare_container_with_file`](#compare_container_with_file) | `media_path, container_id=None, update_playlist=True` |
 | `CanvasModel` | [`create_annotation`](#create_annotation) | `frame=None, comment=None, metadata=None` |
 | `CanvasModel` | [`create_new_annotation_model`](#create_new_annotation_model) | - |
 | `None` | [`delete_annotation`](#delete_annotation) | `frame=None` |
@@ -50,6 +51,7 @@ image.save('c:/image.png')
 | `None` | [`reset_canvas`](#reset_canvas) | - |
 | `None` | [`save`](#save) | - |
 | `None` | [`save_as`](#save_as) | `data=None` |
+| `None` | [`set_all_comparison_layouts`](#set_all_comparison_layouts) | `layout` |
 | `None` | [`set_canvas_comment`](#set_canvas_comment) | `comment` |
 | `None` | [`set_frame`](#set_frame) | `frame` |
 | `None` | [`set_next_annotation`](#set_next_annotation) | - |
@@ -71,11 +73,18 @@ image.save('c:/image.png')
 
 ## Functions Descriptions
 
+### `clear_container_comparisons`
+Removes side containers from a `MultiContainer`. If `side_container_ids_to_remove`
+is `None`, all side containers are removed. When no comparisons remain the
+`MultiContainer` is replaced by its main container in the playlist. Set
+`update_playlist=False` to defer the playlist rebuild when batching calls.
+
 ### `compare_container_with_file`
 Loads a second media file alongside the given container (or the current
 container if `container_id` is `None`) for side-by-side comparison. If the
 target is already a `MultiContainer`, the new media is appended to it;
 otherwise a new `MultiContainer` wrapping both is created in its place.
+Set `update_playlist=False` to defer the playlist rebuild when batching calls.
 
 ### `create_annotation`
 Creates a new annotation at the specified frame (or current frame if not
@@ -229,6 +238,12 @@ Toggles visibility of annotations during playback.
 
 ### `toggle_mute_sound`
 Toggles audio mute state.
+
+### `set_all_comparison_layouts`
+Sets the layout mode for all `MultiContainer` instances in the session.
+Valid values for `layout`: `'horizontal'`, `'vertical'`, `'grid'`, `'thumbnail'`.
+Raises `ValueError` for unsupported values. Refreshes the current frame after
+applying.
 
 ### `toggle_onionskin`
 Enables or disables onion skin rendering.

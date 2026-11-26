@@ -107,7 +107,7 @@ class Playlist(QtCore.QObject):
 
         # Decode current frame
         if self.frame > self.frames_count - 1:
-            self.frame = self.frames_count - 1
+            self.frame = max((self.frames_count - 1, 0))
         self.get_and_cache_frame(self.frame)
         # Concatenate audio
         self._build_audio()

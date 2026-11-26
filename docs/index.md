@@ -12,6 +12,7 @@ It was primarily built to remain simple, facilitate information exchange, and be
 - Powerful review canvas
 - Export of reviewed images
 - Very simple yet comprehensive Python API
+- Side by side videos comparisons
 - Fully scriptable UI using PySide6
 
 

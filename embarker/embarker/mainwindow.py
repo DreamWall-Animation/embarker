@@ -322,6 +322,7 @@ class EmbarkerMainWindow(QtWidgets.QMainWindow):
         playlist_menu.addSeparator()
         playlist_menu.addAction(self.actionregistry.get('LoadComparisonMedia'))
         playlist_menu.addAction(self.actionregistry.get('ClearComparisonMedia'))
+        playlist_menu.addMenu(ComparisonLayoutMenu())
         playlist_menu.addSeparator()
         playlist_menu.addAction(self.actionregistry.get('RemoveCurrentMedia'))
         self.menuBar().addMenu(playlist_menu)
@@ -635,6 +636,14 @@ class ToolbarMenu(QtWidgets.QMenu):
             if d.parent() == self.mainwindow]
         actions.sort(key=lambda a: a.text())
         self.addActions(actions)
+
+
+class ComparisonLayoutMenu(QtWidgets.QMenu):
+    def __init__(self, parent=None):
+        super().__init__('Set all comparison layouts', parent)
+        for layout in ('Horizontal', 'Vertical', 'Grid', 'Thumbnail'):
+            func = partial(ebc.set_all_comparison_layouts, layout.lower())
+            self.addAction(layout, func)
 
 
 class VolumeSlider(QtWidgets.QWidget):

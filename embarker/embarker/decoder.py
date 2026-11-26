@@ -40,12 +40,18 @@ class VideoContainer:
         self._reset_decoder()
         self._thumbnails = {}
 
+    def activate_sound(self):
+        if self._no_sound:
+            self._no_sound = False
+            self.load_audio()
+
     def serialize(self):
         return {
             'type': 'video',
             'kwargs': {
                 'video_path': self.path,
                 'metadata': self._metadata or None,
+                'no_sound': self._no_sound,
                 'container_id': self.id}}
 
     def _reset_decoder(self):
@@ -465,6 +471,14 @@ def deserialize_container(data):
 
 
 def build_container(media_path, metadata=None, container_id=None):
+    if isinstance(media_path, (list, tuple)):
+        containers = [build_container(p) for p in media_path]
+        container = MultiContainer(containers, container_id=container_id)
+        if metadata:
+            for key, value in metadata.items():
+                container.set_metadata(key, value)
+        return container
+
     media_path = os.path.expandvars(media_path)
     if media_path.endswith(VIDEO_EXTENSIONS):
         try:
